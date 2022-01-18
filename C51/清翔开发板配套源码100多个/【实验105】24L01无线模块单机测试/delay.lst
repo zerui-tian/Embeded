@@ -1,0 +1,77 @@
+C51 COMPILER V8.08   DELAY                                                                 08/19/2015 12:54:25 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE DELAY
+OBJECT MODULE PLACED IN delay.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE DELAY\delay.c BROWSE DEBUG OBJECTEXTEND PRINT(.\delay.lst) OBJECT(delay.obj
+                    -)
+
+line level    source
+
+   1          #include "reg52.h"/*包含STC单片机头文件*/
+   2          #include "QX51/qx51.h"/*包含QXP51开发板头文件*/
+   3          #include "delay.h"/*包含清翔电子提供延时函数头文件*/
+   4          #include "intrins.h"/*包含含有_nop_()函数的头文件*/
+   5          
+   6          
+   7          //12T单片机下适用延时函数
+   8          
+   9          /*大约4uS延时函数
+  10          FOSC=11.0592、12、22.1184MHZ时，适用
+  11          其他晶振频率时，要调整_nop_();*/
+  12          void delay4us()
+  13          {
+  14   1              #if FOSC==11059200
+  15   1                      _nop_();
+  16   1              #elif FOSC==12000000
+                              _nop_();
+                      #elif FOSC==22118400
+                              _nop_() ;_nop_(); _nop_();
+                      #endif
+  21   1      }
+  22          
+  23          void delay8us()
+  24          {
+  25   1              #if FOSC==11059200
+  26   1                      _nop_();  _nop_(); _nop_() ;_nop_(); _nop_();
+  27   1              #elif FOSC==12000000
+                              _nop_(); _nop_(); _nop_() ;_nop_(); _nop_();
+                      #elif FOSC==22118400
+                              _nop_() ; _nop_(); _nop_(); _nop_() ; _nop_(); _nop_();
+                              _nop_() ; _nop_(); _nop_(); _nop_() ; _nop_(); _nop_();
+                              _nop_() ; _nop_(); _nop_();
+                      #endif
+  34   1      }
+  35          
+  36          /*大约1ms延时函数*/
+  37          /*FOSC=11.0592、12、22.1184MHZ时，适用*/
+  38          void delay_ms(uint z)
+  39          {
+  40   1              uint x,y;
+  41   1              #if FOSC==11059200
+  42   1                      for(x=z;x>0;x--)
+  43   1                              for(y=112;y>0;y--);
+  44   1              #elif FOSC==12000000
+                              for(x=z;x>0;x--)
+                                      for(y=122;y>0;y--);     
+                      #elif FOSC==22118400
+                              for(x=z;x>0;x--)
+                                      for(y=228;y>0;y--);             
+                      #endif
+  51   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V8.08   DELAY                                                                 08/19/2015 12:54:25 PAGE 2   
+
+   CODE SIZE        =     38    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

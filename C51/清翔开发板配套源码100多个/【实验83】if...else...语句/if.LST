@@ -1,0 +1,56 @@
+C51 COMPILER V8.08   IF                                                                    08/19/2015 10:33:10 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE IF
+OBJECT MODULE PLACED IN if.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE if.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：       通过实例，让同学们了解if…else…语句的作用。
+  17                                   当if后面括弧里面的条件表达式为真，则执行if后面大括弧里的指令
+  18                                   否则将执行else语句后面大括弧里的指令
+  19          ****************************************************************************/
+  20          #include <reg52.h>
+  21          
+  22          sbit s2=P3^0;             //本程序中，P3^4用作输入。 P1口用作输出
+  23          
+  24          void main()
+  25          {
+  26   1              while(1) //永远无条件的执行这个循环。
+  27   1              {
+  28   2                      if(s2==0)         //当s2键被按下时，P3^0管脚为低电平。也即，若s2为0，即代表s2按键被按下
+  29   2                              P1=0x55;  //此时，P1口电平分布为01010101
+  30   2                      else              //否则，s2未被按下
+  31   2                              P1=0xaa;  //此时，P1口电平分布为10101010
+  32   2              }
+  33   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     13    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

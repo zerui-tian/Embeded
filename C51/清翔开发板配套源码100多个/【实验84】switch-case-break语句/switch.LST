@@ -1,0 +1,74 @@
+C51 COMPILER V8.08   SWITCH                                                                08/19/2015 10:34:48 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE SWITCH
+OBJECT MODULE PLACED IN switch.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE switch.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 结合独立按键实现
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：      通过实例说明switch语句的功能。特别注意switch语句的格式，在此很容易犯错。        
+  17          ****************************************************************************/
+  18          #include <reg51.h>
+  19          
+  20          sbit s2=P3^0;
+  21          sbit s3=P3^1;
+  22          sbit s4=P3^2;
+  23          sbit s5=P3^3;
+  24          
+  25          void main()
+  26          {
+  27   1              char anjian;
+  28   1              while(1)   //无条件永远执行大循环
+  29   1              {
+  30   2                      if(!s2)                   //这些按键按下，就会使anjian变量赋以相应的值。
+  31   2                              anjian=1;
+  32   2                      if(!s3)
+  33   2                              anjian=2;
+  34   2                      if(!s4)
+  35   2                              anjian=3;
+  36   2                      if(!s5)
+  37   2                              anjian=4;
+  38   2      
+  39   2                      switch(anjian)  //当按键的值为几，程序就跳转到case几执行指令，让然后跳出
+  40   2                      {//这个大括弧一定不可少
+  41   3                              case 1: P1=0X0F; break;//这个break也不可少
+  42   3                              case 2: P1=0Xf0; break;
+  43   3                              case 3: P1=0X55; break;
+  44   3                              case 4: P1=0Xaa; break;
+  45   3                              default:P1=0X00; break;//这个为当anjian取值为其他值时的结果（注意关键字为default）。
+  46   3                      }                                                  //又由于在刚定义变量anjian时，变量的值为初始值0，而0不属于上面的数值，
+  47   2                                                                         //故此时default项即被选中，故刚开机时，为8个LED均亮。
+  48   2              }
+  49   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     60    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+C51 COMPILER V8.08   SWITCH                                                                08/19/2015 10:34:48 PAGE 2   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

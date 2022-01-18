@@ -1,0 +1,88 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/19/2015  10:34:48  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE switch.obj TO switch
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  switch.obj (SWITCH)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  switch (SWITCH)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     003CH     UNIT         ?PR?MAIN?SWITCH
+            CODE    003FH     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   switch (SWITCH)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?SWITCH
+
+
+
+SYMBOL TABLE OF MODULE:  switch (SWITCH)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        SWITCH
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  B:00B0H.0       PUBLIC        s2
+  B:00B0H.1       PUBLIC        s3
+  C:0003H         PUBLIC        main
+  B:00B0H.2       PUBLIC        s4
+  B:00B0H.3       PUBLIC        s5
+  -------         PROC          MAIN
+  -------         DO            
+  D:0007H         SYMBOL        anjian
+  -------         ENDDO         
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  10:34:48  PAGE 2
+
+
+  C:0003H         LINE#         25
+  C:0003H         LINE#         26
+  C:0003H         LINE#         28
+  C:0003H         LINE#         29
+  C:0003H         LINE#         30
+  C:0006H         LINE#         31
+  C:0008H         LINE#         32
+  C:000BH         LINE#         33
+  C:000DH         LINE#         34
+  C:0010H         LINE#         35
+  C:0012H         LINE#         36
+  C:0015H         LINE#         37
+  C:0017H         LINE#         39
+  C:0026H         LINE#         40
+  C:0026H         LINE#         41
+  C:002BH         LINE#         42
+  C:0030H         LINE#         43
+  C:0035H         LINE#         44
+  C:003AH         LINE#         45
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        SWITCH
+
+Program Size: data=9.0 xdata=0 code=75
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

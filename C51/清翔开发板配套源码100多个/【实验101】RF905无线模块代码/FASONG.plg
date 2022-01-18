@@ -1,0 +1,17 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\3、开发板配套C实验例程100多个\【实验101】RF905无线模块代码\FASONG.uv2
+Project File Date:  04/26/2015
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling Fasong.c...
+linking...
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CHECKDR?FASONG
+Program Size: data=29.0 xdata=0 code=612
+creating hex file from "FASONG"...
+"FASONG" - 0 Error(s), 1 Warning(s).

@@ -1,0 +1,257 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/17/2015  17:11:51  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE jishiqi.obj TO jishiqi RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  jishiqi.obj (JISHIQI)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  jishiqi (JISHIQI)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000FH     UNIT         ?DT?JISHIQI
+            DATA    0017H     0006H     UNIT         _DATA_GROUP_
+            IDATA   001DH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0004H     UNIT         ?C_INITSEG
+                    0007H     0004H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     0092H     UNIT         ?PR?MAIN?JISHIQI
+            CODE    00A0H     008CH     UNIT         ?C_C51STARTUP
+            CODE    012CH     0071H     UNIT         ?PR?_DISPLAY?JISHIQI
+            CODE    019DH     001AH     UNIT         ?PR?_DELAY?JISHIQI
+            CODE    01B7H     0015H     UNIT         ?PR?KEYSCAN?JISHIQI
+            CODE    01CCH     0013H     UNIT         ?PR?TIME0?JISHIQI
+            CODE    01DFH     0010H     UNIT         ?CO?JISHIQI
+
+
+
+OVERLAY MAP OF MODULE:   jishiqi (JISHIQI)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?JISHIQI
+  +--> ?C_INITSEG
+
+?PR?MAIN?JISHIQI               -----    -----
+  +--> ?PR?KEYSCAN?JISHIQI
+  +--> ?PR?_DISPLAY?JISHIQI
+
+?PR?KEYSCAN?JISHIQI            -----    -----
+  +--> ?PR?_DELAY?JISHIQI
+
+?PR?_DISPLAY?JISHIQI           0017H    0006H
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/17/2015  17:11:51  PAGE 2
+
+
+  +--> ?CO?JISHIQI
+  +--> ?PR?_DELAY?JISHIQI
+
+
+
+SYMBOL TABLE OF MODULE:  jishiqi (JISHIQI)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        JISHIQI
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00B0H.0       PUBLIC        S2
+  B:00B0H.1       PUBLIC        S3
+  B:00A8H.7       PUBLIC        EA
+  C:01DFH         PUBLIC        table
+  D:0008H         PUBLIC        a0
+  C:01A3H         PUBLIC        _delay
+  D:0009H         PUBLIC        b0
+  D:000AH         PUBLIC        a1
+  D:000BH         PUBLIC        c0
+  D:000CH         PUBLIC        b1
+  D:000DH         PUBLIC        c1
+  C:000EH         PUBLIC        main
+  B:00A0H.6       PUBLIC        dula
+  D:000EH         PUBLIC        halt
+  B:00A0H.7       PUBLIC        wela
+  D:0089H         PUBLIC        TMOD
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  B:0088H.4       PUBLIC        TR0
+  D:000FH         PUBLIC        pp
+  C:01CCH         PUBLIC        time0
+  D:0011H         PUBLIC        f
+  D:0012H         PUBLIC        j
+  D:0013H         PUBLIC        k
+  D:0014H         PUBLIC        m
+  D:0015H         PUBLIC        n
+  C:01B7H         PUBLIC        keyscan
+  D:0016H         PUBLIC        s
+  C:0135H         PUBLIC        _display
+  C:019DH         SYMBOL        L?0025
+  -------         PROC          L?0024
+  -------         ENDPROC       L?0024
+  C:019DH         SYMBOL        L?0025
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        i
+  C:01A3H         LINE#         34
+  C:01A3H         LINE#         35
+  C:01A3H         LINE#         36
+  C:01ACH         LINE#         37
+  C:01B6H         LINE#         38
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/17/2015  17:11:51  PAGE 3
+
+
+  -------         ENDPROC       _DELAY
+  -------         PROC          L?0026
+  -------         ENDPROC       L?0026
+  -------         PROC          _DISPLAY
+  D:0007H         SYMBOL        shi2
+  D:0005H         SYMBOL        shi1
+  D:0003H         SYMBOL        fen2
+  D:001AH         SYMBOL        fen1
+  D:001BH         SYMBOL        miao2
+  D:001CH         SYMBOL        miao1
+  C:0135H         LINE#         40
+  C:0135H         LINE#         41
+  C:0135H         LINE#         42
+  C:0137H         LINE#         43
+  C:013EH         LINE#         44
+  C:0140H         LINE#         45
+  C:0142H         LINE#         47
+  C:0144H         LINE#         48
+  C:0147H         LINE#         49
+  C:0147H         LINE#         50
+  C:0147H         LINE#         51
+  C:014AH         LINE#         53
+  C:0150H         LINE#         54
+  C:0152H         LINE#         55
+  C:0154H         LINE#         57
+  C:0157H         LINE#         58
+  C:0157H         LINE#         59
+  C:0157H         LINE#         60
+  C:015AH         LINE#         62
+  C:015EH         LINE#         63
+  C:0160H         LINE#         64
+  C:0162H         LINE#         66
+  C:0165H         LINE#         67
+  C:0165H         LINE#         68
+  C:0165H         LINE#         69
+  C:0168H         LINE#         71
+  C:016FH         LINE#         72
+  C:0171H         LINE#         73
+  C:0173H         LINE#         75
+  C:0176H         LINE#         76
+  C:0176H         LINE#         77
+  C:0176H         LINE#         78
+  C:0179H         LINE#         80
+  C:017EH         LINE#         81
+  C:0180H         LINE#         82
+  C:0182H         LINE#         84
+  C:0185H         LINE#         85
+  C:0185H         LINE#         86
+  C:0185H         LINE#         87
+  C:0188H         LINE#         89
+  C:018DH         LINE#         90
+  C:018FH         LINE#         91
+  C:0191H         LINE#         93
+  C:0194H         LINE#         94
+  C:0196H         LINE#         95
+  C:0198H         LINE#         96
+  -------         ENDPROC       _DISPLAY
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/17/2015  17:11:51  PAGE 4
+
+
+  -------         PROC          KEYSCAN
+  C:01B7H         LINE#         99
+  C:01B7H         LINE#         100
+  C:01B7H         LINE#         101
+  C:01BAH         LINE#         102
+  C:01BFH         LINE#         103
+  C:01C2H         LINE#         104
+  C:01C2H         LINE#         105
+  C:01C5H         LINE#         106
+  C:01C5H         LINE#         107
+  C:01C8H         LINE#         108
+  C:01CBH         LINE#         109
+  -------         ENDPROC       KEYSCAN
+  -------         PROC          MAIN
+  C:000EH         LINE#         111
+  C:000EH         LINE#         112
+  C:000EH         LINE#         113
+  C:0011H         LINE#         114
+  C:0013H         LINE#         115
+  C:0016H         LINE#         116
+  C:0019H         LINE#         117
+  C:001BH         LINE#         118
+  C:001DH         LINE#         119
+  C:001DH         LINE#         120
+  C:0020H         LINE#         121
+  C:0024H         LINE#         122
+  C:0024H         LINE#         123
+  C:0026H         LINE#         124
+  C:002EH         LINE#         125
+  C:0032H         LINE#         126
+  C:0034H         LINE#         127
+  C:0036H         LINE#         128
+  C:0039H         LINE#         129
+  C:003EH         LINE#         130
+  C:003EH         LINE#         131
+  C:0041H         LINE#         132
+  C:0043H         LINE#         133
+  C:0048H         LINE#         134
+  C:0048H         LINE#         135
+  C:004BH         LINE#         136
+  C:004DH         LINE#         137
+  C:0052H         LINE#         138
+  C:0052H         LINE#         139
+  C:0055H         LINE#         140
+  C:0055H         LINE#         141
+  C:0055H         LINE#         142
+  C:0055H         LINE#         143
+  C:0055H         LINE#         145
+  C:005EH         LINE#         146
+  C:0066H         LINE#         147
+  C:006FH         LINE#         148
+  C:0077H         LINE#         149
+  C:0080H         LINE#         150
+  C:0088H         LINE#         151
+  C:0090H         LINE#         152
+  C:0092H         LINE#         154
+  C:0094H         LINE#         155
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/17/2015  17:11:51  PAGE 5
+
+
+  C:009DH         LINE#         156
+  -------         ENDPROC       MAIN
+  -------         PROC          TIME0
+  C:01CCH         LINE#         159
+  C:01CEH         LINE#         160
+  C:01D1H         LINE#         161
+  C:01D4H         LINE#         162
+  C:01DCH         LINE#         163
+  -------         ENDPROC       TIME0
+  -------         ENDMOD        JISHIQI
+
+Program Size: data=30.0 xdata=0 code=491
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,124 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              03/28/2021 23:06:44 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>
+   3          #include<main.h>
+   4          #include<BUZZER.h>
+   5          
+   6          #define NOTE(pitch, note) pitch*12+note
+   7          #define BPM(bmp) (int)(60*20/2/bmp)
+   8          #define musical_len 42
+   9          
+  10          sbit BEEP = P1^7;
+  11          
+  12          uchar th0_f;
+  13          uchar tl0_f;
+  14          uchar ptr;
+  15          uchar timer0_cnt;
+  16          uchar duration_cnt;
+  17          uchar beat_speed;
+  18          
+  19          
+  20          const uchar code freq[36*2]={
+  21            0xA9,0xEF,  0x93,0xF0,  0x73,0xF1,  0x49,0xF2,
+  22            0x07,0xF3,  0xC8,0xF3,  0x73,0xF4,  0x1E,0xF5,
+  23            0xB6,0xF5,  0x4C,0xF6,  0xD7,0xF6,  0x5A,0xF7,
+  24            
+  25            0xD8,0xF7,  0x4D,0xF8,  0xBD,0xF8,  0x24,0xF9,
+  26            0x87,0xF9,  0xE4,0xF9,  0x3D,0xFA,  0x90,0xFA,
+  27            0xDE,0xFA,  0x29,0xFB,  0x6F,0xFB,  0xB1,0xFB,
+  28            
+  29            0xEF,0xFB,  0x2A,0xFC,  0x62,0xFC,  0x95,0xFC,
+  30            0xC7,0xFC,  0xF6,0xFC,  0x22,0xFD,  0x4B,0xFD,
+  31            0x73,0xFD,  0x98,0xFD,  0xBB,0xFD,  0xDC,0xFD,
+  32          };
+  33          
+  34          uchar notes[musical_len]={
+  35            NOTE(ALTO,DO), NOTE(ALTO,DO), NOTE(ALTO,SO), NOTE(ALTO,SO), NOTE(ALTO,LA), NOTE(ALTO,LA), NOTE(ALTO,SO),
+  36            NOTE(ALTO,FA), NOTE(ALTO,FA), NOTE(ALTO,MI), NOTE(ALTO,MI), NOTE(ALTO,RE), NOTE(ALTO,RE), NOTE(ALTO,DO),
+  37            NOTE(ALTO,SO), NOTE(ALTO,SO), NOTE(ALTO,FA), NOTE(ALTO,FA), NOTE(ALTO,MI), NOTE(ALTO,MI), NOTE(ALTO,RE),
+  38            NOTE(ALTO,SO), NOTE(ALTO,SO), NOTE(ALTO,FA), NOTE(ALTO,FA), NOTE(ALTO,MI), NOTE(ALTO,MI), NOTE(ALTO,RE),
+  39            NOTE(ALTO,DO), NOTE(ALTO,DO), NOTE(ALTO,SO), NOTE(ALTO,SO), NOTE(ALTO,LA), NOTE(ALTO,LA), NOTE(ALTO,SO),
+  40            NOTE(ALTO,FA), NOTE(ALTO,FA), NOTE(ALTO,MI), NOTE(ALTO,MI), NOTE(ALTO,RE), NOTE(ALTO,RE), NOTE(ALTO,DO),
+  41          };
+  42          
+  43          uchar duration[musical_len] = {
+  44            2, 2, 2, 2, 2,
+  45            2, 2, 2, 2, 2,
+  46            2, 2, 2, 2, 2,
+  47            2, 2, 2, 2, 2,
+  48            2, 2, 2, 2, 2,
+  49            2, 2, 2, 2, 2,
+  50            2, 2, 2, 2, 2,
+  51            2, 2, 2, 2, 2,
+  52            2, 2
+  53          };
+  54          
+C51 COMPILER V9.60.0.0   MAIN                                                              03/28/2021 23:06:44 PAGE 2   
+
+  55          void initializer(){
+  56   1        TMOD = 0x11;
+  57   1        ET0 = 1;
+  58   1        ET1 = 1;
+  59   1        TL0=0xAF;
+  60   1        TH0=0x3C;
+  61   1        timer0_cnt = 0;
+  62   1        ptr = 0;
+  63   1        duration_cnt = duration[ptr];
+  64   1        beat_speed = BPM(72);
+  65   1        EA = 1;
+  66   1        TR0 = 1;
+  67   1        TR1 = 1;
+  68   1        
+  69   1      }
+  70          
+  71          void main(void)
+  72          {
+  73   1        initializer();
+  74   1        while(1){
+  75   2          tl0_f=freq[notes[ptr]*2];
+  76   2          th0_f=freq[notes[ptr]*2+1];
+  77   2          if(duration_cnt == 0) {
+  78   3            ptr = (ptr+1)%musical_len;
+  79   3            duration_cnt = duration[ptr];
+  80   3          }
+  81   2        }
+  82   1      }
+  83          
+  84          void timer0() interrupt 1 {
+  85   1        timer0_cnt++;
+  86   1        if(timer0_cnt >= beat_speed) {
+  87   2            duration_cnt--;
+  88   2            timer0_cnt = 0;
+  89   2        }
+  90   1        TL0=0xAF;
+  91   1        TH0=0x3C;
+  92   1      }
+  93          
+  94          void timer1() interrupt 3 {
+  95   1        TL1=tl0_f;
+  96   1        TH1=th0_f;
+  97   1        BEEP=~BEEP;
+  98   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    146    ----
+   CONSTANT SIZE    =     72    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     90    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

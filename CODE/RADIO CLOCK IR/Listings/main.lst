@@ -1,0 +1,220 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              04/10/2021 20:30:39 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          
+   4          #define DEBUG 0
+   5          
+   6          #define TRUE  1
+   7          #define FALSE 0
+   8          
+   9          #define HIGH  1
+  10          #define LOW   0
+  11          
+  12          #define FRAME_LENGTH_BPC 12
+  13          
+  14          #define SCAN_PERIOD_H 0x00
+  15          #define SCAN_PERIOD_L 0x00
+  16          
+  17          //time information
+  18          // 0      1       2       3       4       5       6       7
+  19          // second minute  hour    weekday date    month   year    century
+  20          // 0-59   0-59    0-23    0-6     1-31    1-12    00-99   00-99
+  21          #define SECOND    0
+  22          #define MINUTE    1
+  23          #define HOUR      2
+  24          #define WEEKDAY   3
+  25          #define DATE      4
+  26          #define MONTH     5
+  27          #define YEAR      6
+  28          #define CENTURY   7
+  29          xdata char time_BPC[8];
+  30          
+  31          #define COUNTDOWN_RESETBITSRECIEVER_BPC 100
+  32          char countDown_ResetBitsReciever_BPC = COUNTDOWN_RESETBITSRECIEVER_BPC;
+  33          
+  34          //signals
+  35          sbit DATA_BPC   = P3^3;
+  36          sbit RESET_BPC  = P3^5;
+  37          sbit PON_BPC    = P3^4;
+  38          
+  39          //counters
+  40          char interruptCounter_BitsReciever_BPC = 0;
+  41          
+  42          //recieve buffers
+  43          char buffer_BPC[FRAME_LENGTH_BPC];//{0x02,0x01,0x04,0x0C,0x03,0x0E,0x0A,0x05,0x05,0x00,0x00,0x00};
+  44          
+  45          //flags
+  46          bit resetBPC =        TRUE;
+  47          bit recentlySucceed = FALSE;
+  48          bit recentlyRecieve = FALSE;
+  49          
+  50          /************************************************
+  51           *                 Initializer                  *
+  52           ************************************************/
+  53          void initializer(){
+  54   1        //timers
+C51 COMPILER V9.60.0.0   MAIN                                                              04/10/2021 20:30:39 PAGE 2   
+
+  55   1        TMOD=0x21;
+  56   1        TH0=SCAN_PERIOD_H;
+  57   1        TL0=SCAN_PERIOD_L;
+  58   1        TL1=0xFD;
+  59   1        TH1=0xFD;//baudrate 9600
+  60   1        
+  61   1        //serial
+  62   1        SCON=0x50;
+  63   1        PCON=0x00;
+  64   1        
+  65   1        //external: negative edge
+  66   1        IT0=TRUE;
+  67   1        IT1=TRUE;
+  68   1        
+  69   1        //eable timers
+  70   1        TR0=TRUE;
+  71   1        TR1=TRUE;
+  72   1        
+  73   1        //priority
+  74   1        IP = 0x01;
+  75   1        
+  76   1        //reset BPC reciever
+  77   1        RESET_BPC=HIGH;
+  78   1      
+  79   1        //eable IRQs
+  80   1        ET0=TRUE;
+  81   1        EX0=TRUE;
+  82   1        ES=TRUE;
+  83   1        
+  84   1        //eable interruption
+  85   1        EA=TRUE;
+  86   1      }
+  87          
+  88          void main(){
+  89   1        initializer();
+  90   1        while(TRUE){
+  91   2        }
+  92   1      }
+  93          
+  94          void EX0_IRQ(void) interrupt 0{
+  95   1        char i;
+  96   1        char checkSum;
+  97   1        
+  98   1        recentlyRecieve=TRUE;
+  99   1        
+ 100   1        if(interruptCounter_BitsReciever_BPC%4==0){
+ 101   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] = DATA_BPC==HIGH?0x01:0x00;
+ 102   2        }
+ 103   1        else{
+ 104   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] <<= 1;
+ 105   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] |= DATA_BPC==HIGH?0x01:0x00;
+ 106   2        }
+ 107   1        interruptCounter_BitsReciever_BPC++;
+ 108   1        
+ 109   1        if(interruptCounter_BitsReciever_BPC>=FRAME_LENGTH_BPC*4){
+ 110   2          
+ 111   2          //reset counter
+ 112   2          interruptCounter_BitsReciever_BPC=0;
+ 113   2          
+ 114   2          //calculate checksum
+ 115   2          checkSum = 0x00;
+ 116   2          for(i=0; i<FRAME_LENGTH_BPC-1; i++){checkSum += buffer_BPC[i];}
+C51 COMPILER V9.60.0.0   MAIN                                                              04/10/2021 20:30:39 PAGE 3   
+
+ 117   2          checkSum = checkSum&0x0F;
+ 118   2          
+ 119   2          //calculate validity and fix
+ 120   2          if((buffer_BPC[3]&0x0C)==0x0C){
+ 121   3              if(checkSum==buffer_BPC[11]){
+ 122   4                recentlySucceed = TRUE;
+ 123   4              }
+ 124   3              else{
+ 125   4                recentlySucceed = FALSE;
+ 126   4              }
+ 127   3          }
+ 128   2          else{
+ 129   3            recentlySucceed = FALSE;
+ 130   3          }
+ 131   2          
+ 132   2          //if the frame is valid, update time information
+ 133   2          if(recentlySucceed){
+ 134   3            time_BPC[SECOND] =  (buffer_BPC[10]&0x0F)|(buffer_BPC[9]<<4);
+ 135   3            time_BPC[MINUTE] =  (buffer_BPC[8]&0x0F)|(buffer_BPC[7]<<4);
+ 136   3            
+ 137   3            time_BPC[HOUR] = buffer_BPC[6]&0x0F;
+ 138   3            if((buffer_BPC[5]&0x08) && (buffer_BPC[6]!=0x0C)){time_BPC[HOUR] = time_BPC[HOUR] + 12;}
+ 139   3            buffer_BPC[6] = time_BPC[HOUR];
+ 140   3            time_BPC[HOUR] =    (buffer_BPC[6]%10)|((buffer_BPC[6]/10)<<4);
+ 141   3      
+ 142   3            time_BPC[WEEKDAY] =  buffer_BPC[5]&0x07;
+ 143   3            time_BPC[DATE] =    (buffer_BPC[4]&0x0F)|((buffer_BPC[3]&0x03)<<4);
+ 144   3            time_BPC[MONTH] =   (buffer_BPC[2]%10)|((buffer_BPC[2]/10)<<4);
+ 145   3            time_BPC[YEAR] =    (buffer_BPC[1]&0x0F)|(buffer_BPC[0]<<4);
+ 146   3            time_BPC[CENTURY] =  0x20;
+ 147   3          }
+ 148   2          
+ 149   2          for(i=0; i<FRAME_LENGTH_BPC; i++){
+ 150   3            SBUF=buffer_BPC[i];
+ 151   3            while(!TI);
+ 152   3            TI=FALSE;
+ 153   3          }
+ 154   2          SBUF=checkSum;
+ 155   2          while(!TI);
+ 156   2          TI=FALSE;
+ 157   2          
+ 158   2          resetBPC = !recentlySucceed;
+ 159   2        }
+ 160   1      }
+ 161          
+ 162          void Timer0_IRQ(void) interrupt 1{
+ 163   1        if(recentlyRecieve){
+ 164   2          if(countDown_ResetBitsReciever_BPC<=0){
+ 165   3            recentlyRecieve=FALSE;
+ 166   3          }
+ 167   2          else{
+ 168   3            countDown_ResetBitsReciever_BPC--;
+ 169   3          }
+ 170   2        }
+ 171   1        else{
+ 172   2          countDown_ResetBitsReciever_BPC = COUNTDOWN_RESETBITSRECIEVER_BPC;
+ 173   2          interruptCounter_BitsReciever_BPC = 0;
+ 174   2        }
+ 175   1        if(resetBPC){
+ 176   2          if(RESET_BPC==HIGH){
+ 177   3            RESET_BPC=LOW;
+ 178   3            resetBPC=FALSE;
+C51 COMPILER V9.60.0.0   MAIN                                                              04/10/2021 20:30:39 PAGE 4   
+
+ 179   3          }
+ 180   2          else{
+ 181   3            RESET_BPC=HIGH;
+ 182   3          }
+ 183   2        }
+ 184   1        else{
+ 185   2          RESET_BPC=LOW;
+ 186   2        }
+ 187   1        
+ 188   1        TH0=SCAN_PERIOD_H;
+ 189   1        TL0=SCAN_PERIOD_L;
+ 190   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    551    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =      8    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     14    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

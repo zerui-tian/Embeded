@@ -1,0 +1,60 @@
+C51 COMPILER V8.08   LED                                                                   04/26/2015 23:45:35 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE LED
+OBJECT MODULE PLACED IN led.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE led.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 流水灯                                                                             
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include<reg52.h>
+  17          #include<intrins.h>
+  18          
+  19          void delay(unsigned char i)
+  20          {
+  21   1              unsigned char m,n;
+  22   1              for(m=i;m>0;m--)
+  23   1              for(n=125;n>0;n--);
+  24   1      }
+  25          
+  26          void main()
+  27          {       unsigned char k;
+  28   1      while(1)
+  29   1      {
+  30   2              P1=0xfe;
+  31   2              for(k=0;k<8;k++)
+  32   2              {
+  33   3              delay(2000);
+  34   3              P1=_crol_(P1,1);
+  35   3              }
+  36   2      }
+  37   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     43    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

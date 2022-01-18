@@ -1,0 +1,15 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\3、开发板配套C实验例程100多个\【实验37】用液晶显示的一个时钟\lesson9.uv2
+Project File Date:  04/17/2015
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling lesson9.c...
+linking...
+Program Size: data=14.0 xdata=0 code=592
+creating hex file from "lesson9"...
+"lesson9" - 0 Error(s), 0 Warning(s).

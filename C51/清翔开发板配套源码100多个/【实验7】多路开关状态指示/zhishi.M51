@@ -1,0 +1,87 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/15/2015  12:17:20  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE zhishi.obj TO zhishi
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  zhishi.obj (ZHISHI)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  zhishi (ZHISHI)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0026H     UNIT         ?PR?MAIN?ZHISHI
+            CODE    0029H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   zhishi (ZHISHI)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?ZHISHI
+
+
+
+SYMBOL TABLE OF MODULE:  zhishi (ZHISHI)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ZHISHI
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  B:00B0H.0       PUBLIC        s2
+  B:00B0H.1       PUBLIC        s3
+  C:0003H         PUBLIC        main
+  B:00B0H.2       PUBLIC        s4
+  B:00B0H.3       PUBLIC        s5
+  B:0090H.0       PUBLIC        led1
+  B:0090H.1       PUBLIC        led2
+  B:0090H.2       PUBLIC        led3
+  B:0090H.3       PUBLIC        led4
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/15/2015  12:17:20  PAGE 2
+
+
+  -------         PROC          MAIN
+  C:0003H         LINE#         27
+  C:0003H         LINE#         28
+  C:0003H         LINE#         29
+  C:0003H         LINE#         30
+  C:0003H         LINE#         31
+  C:0006H         LINE#         32
+  C:000AH         LINE#         34
+  C:000CH         LINE#         36
+  C:000FH         LINE#         37
+  C:0013H         LINE#         39
+  C:0015H         LINE#         41
+  C:0018H         LINE#         42
+  C:001CH         LINE#         44
+  C:001EH         LINE#         46
+  C:0021H         LINE#         47
+  C:0025H         LINE#         49
+  C:0027H         LINE#         50
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        ZHISHI
+
+Program Size: data=9.0 xdata=0 code=53
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

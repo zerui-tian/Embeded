@@ -1,0 +1,143 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/19/2015  12:48:49  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE PWM输出LED显示.obj TO PWM输出LED显示 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  PWM输出LED显示.obj (PWM蔩出LED显示)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  PWM输出LED显示 (PWM蔩出LED显示)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0002H     UNIT         ?DT?PWM蔩出LED显示
+            IDATA   000AH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0007H     UNIT         ?C_INITSEG
+                    000AH     0001H                  *** GAP ***
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     008CH     UNIT         ?C_C51STARTUP
+            CODE    009AH     003DH     UNIT         ?PR?MAIN?PWM蔩出LED显示
+            CODE    00D7H     001EH     UNIT         ?PR?_DELAY_1MS?PWM蔩出LED显示
+            CODE    00F5H     001EH     UNIT         ?PR?TIMER0?PWM蔩出LED显示
+
+
+
+OVERLAY MAP OF MODULE:   PWM输出LED显示 (PWM蔩出LED显示)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?PWM蔩出LED显示
+  +--> ?C_INITSEG
+
+?PR?MAIN?PWM蔩出LED显示
+  +--> ?PR?_DELAY_1MS?PWM蔩出LED显示
+
+
+
+SYMBOL TABLE OF MODULE:  PWM输出LED显示 (PWM蔩出LED显示)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        PWM蔩出LED显示
+  C:0000H         SYMBOL        _ICE_DUMMY_
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  12:48:49  PAGE 2
+
+
+  D:0090H         PUBLIC        P1
+  D:00B0H         PUBLIC        P3
+  C:00D7H         PUBLIC        _delay_1ms
+  B:00A8H.7       PUBLIC        EA
+  C:009AH         PUBLIC        main
+  D:0008H         PUBLIC        PWM_T
+  D:0089H         PUBLIC        TMOD
+  B:00B0H.0       PUBLIC        down
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  D:008AH         PUBLIC        TL0
+  C:00F5H         PUBLIC        timer0
+  B:0088H.4       PUBLIC        TR0
+  B:00B0H.1       PUBLIC        up
+  D:0009H         PUBLIC        t
+  -------         PROC          _DELAY_1MS
+  D:0006H         SYMBOL        t
+  -------         DO            
+  D:0006H         SYMBOL        x
+  D:0004H         SYMBOL        y
+  -------         ENDDO         
+  C:00D7H         LINE#         38
+  C:00D7H         LINE#         39
+  C:00D7H         LINE#         41
+  C:00E0H         LINE#         42
+  C:00F4H         LINE#         43
+  -------         ENDPROC       _DELAY_1MS
+  -------         PROC          MAIN
+  C:009AH         LINE#         50
+  C:009AH         LINE#         51
+  C:009AH         LINE#         53
+  C:009DH         LINE#         54
+  C:00A0H         LINE#         55
+  C:00A3H         LINE#         56
+  C:00A5H         LINE#         57
+  C:00A7H         LINE#         58
+  C:00A9H         LINE#         59
+  C:00ACH         LINE#         60
+  C:00AFH         LINE#         61
+  C:00AFH         LINE#         63
+  C:00AFH         LINE#         64
+  C:00B2H         LINE#         65
+  C:00B2H         LINE#         66
+  C:00B9H         LINE#         67
+  C:00B9H         LINE#         68
+  C:00BBH         LINE#         69
+  C:00BBH         LINE#         71
+  C:00C2H         LINE#         72
+  C:00C2H         LINE#         73
+  C:00C5H         LINE#         74
+  C:00C5H         LINE#         75
+  C:00CCH         LINE#         76
+  C:00CCH         LINE#         77
+  C:00CEH         LINE#         78
+  C:00CEH         LINE#         80
+  C:00D5H         LINE#         81
+  C:00D5H         LINE#         84
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  12:48:49  PAGE 3
+
+
+  -------         ENDPROC       MAIN
+  -------         PROC          TIMER0
+  C:00F5H         LINE#         89
+  C:00F9H         LINE#         91
+  C:00FBH         LINE#         93
+  C:0100H         LINE#         94
+  C:0100H         LINE#         95
+  C:0103H         LINE#         96
+  C:0106H         LINE#         97
+  C:0106H         LINE#         99
+  C:010BH         LINE#         100
+  C:010BH         LINE#         101
+  C:010EH         LINE#         102
+  C:010EH         LINE#         103
+  -------         ENDPROC       TIMER0
+  -------         ENDMOD        PWM蔩出LED显示
+
+Program Size: data=11.0 xdata=0 code=274
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

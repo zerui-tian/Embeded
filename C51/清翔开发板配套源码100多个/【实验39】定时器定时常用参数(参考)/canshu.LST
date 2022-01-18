@@ -1,0 +1,71 @@
+C51 COMPILER V8.08   CANSHU                                                                08/15/2015 19:58:11 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE CANSHU
+OBJECT MODULE PLACED IN canshu.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE canshu.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 本程序提供一些常用定时器计时的具体参数。
+  12                                  用的是定时器0工作于方式1。
+  13                                  且只针对11.0592MHz的晶振。                                                                                  
+  14          * 【使用说明】： 
+  15          *  说明：免费开源，不提供源代码分析.
+  16          **********************************************************************************/
+  17                                                                                                                                                                     
+  18          #include <reg51.h>
+  19          
+  20          void InitTimer0(void)
+  21          {
+  22   1          TMOD = 0x01;
+  23   1          TH0 = 0xFF; //延时100微秒
+  24   1          TL0 = 0xA4;
+  25   1      /*******************************************************************
+  26   1          TH0 = 0xFC;//延时1ms，请在中断处理函数中，重新装入该数值。
+  27   1          TL0 = 0x6;
+  28   1      ********************************************************************
+  29   1          TH0 = 0xDC;//延时10ms，请在中断处理函数中，重新装入该数值
+  30   1          TL0 = 0x00;
+  31   1      ********************************************************************/
+  32   1          EA = 1;
+  33   1          ET0 = 1;
+  34   1          TR0 = 1;
+  35   1      }
+  36          
+  37          void main(void)
+  38          {
+  39   1          InitTimer0();
+  40   1      }
+  41          
+  42          void Timer0Interrupt(void) interrupt 1
+  43          {
+  44   1          TH0 = 0x0FF; //这只是100微秒所对应的参数，若为其他秒数，请
+  45   1              TL0 = 0x0A4; //在次更该相应参数，如上面所示。
+  46   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     26    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V8.08   CANSHU                                                                08/15/2015 19:58:11 PAGE 2   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

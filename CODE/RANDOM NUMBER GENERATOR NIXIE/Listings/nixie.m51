@@ -1,0 +1,215 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    03/28/2021  22:56:33  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\STARTUP.obj, .\Objects\main.obj TO .\Objects\nixie PRINT (.\Listings\nixie.m51) RA
+>> MSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\STARTUP.obj (?C_STARTUP)
+  .\Objects\main.obj (MAIN)
+
+
+LINK MAP OF MODULE:  .\Objects\nixie (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0007H     UNIT         ?DT?MAIN
+            IDATA   000FH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0003H     ABSOLUTE     
+            CODE    0006H     0005H     UNIT         ?PR?MAIN?MAIN
+            CODE    000BH     0003H     ABSOLUTE     
+            CODE    000EH     0078H     UNIT         ?PR?TIMER0_IRQ?MAIN
+            CODE    0086H     0026H     UNIT         ?PR?RANDOM?MAIN
+            CODE    00ACH     0022H     UNIT         ?PR?REFRESH?MAIN
+            CODE    00CEH     0021H     UNIT         ?PR?SYSTEMINIT?MAIN
+            CODE    00EFH     0010H     UNIT         ?CO?MAIN
+            CODE    00FFH     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\nixie (?C_STARTUP)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?MAIN
+
+?PR?MAIN?MAIN
+  +--> ?PR?SYSTEMINIT?MAIN
+
+*** NEW ROOT ***************************************************
+
+?PR?RANDOM?MAIN
+  +--> ?PR?REFRESH?MAIN
+
+*** NEW ROOT ***************************************************
+
+?PR?TIMER0_IRQ?MAIN
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  03/28/2021  22:56:33  PAGE 2
+
+
+  +--> ?CO?MAIN
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\nixie (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:00FFH         SEGMENT       ?C_C51STARTUP
+  I:000FH         SEGMENT       ?STACK
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:0102H         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:00FFH         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:00FFH         LINE#         133
+  C:0101H         LINE#         134
+  C:0102H         LINE#         135
+  C:0103H         LINE#         136
+  C:0105H         LINE#         185
+  C:0108H         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  C:000EH         PUBLIC        Timer0_IRQ
+  D:00B0H         PUBLIC        P3
+  B:00A8H.7       PUBLIC        EA
+  D:00A8H         PUBLIC        IE
+  D:00B8H         PUBLIC        IP
+  C:00CEH         PUBLIC        SystemInit
+  C:0006H         PUBLIC        main
+  D:0008H         PUBLIC        rand
+  C:00EFH         PUBLIC        dotTable
+  D:0098H         PUBLIC        SCON
+  D:0089H         PUBLIC        TMOD
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  03/28/2021  22:56:33  PAGE 3
+
+
+  D:0088H         PUBLIC        TCON
+  D:0009H         PUBLIC        vram
+  B:00A8H.1       PUBLIC        ET0
+  D:008CH         PUBLIC        TH0
+  B:00A8H.0       PUBLIC        EX0
+  B:0088H.0       PUBLIC        IT0
+  D:008DH         PUBLIC        TH1
+  B:0088H.2       PUBLIC        IT1
+  D:008AH         PUBLIC        TL0
+  D:008BH         PUBLIC        TL1
+  B:0088H.4       PUBLIC        TR0
+  B:0088H.6       PUBLIC        TR1
+  D:000DH         PUBLIC        interruptCounter
+  C:0086H         PUBLIC        Random
+  C:00F1H         PUBLIC        digitSelectTable
+  D:00C8H         PUBLIC        T2CON
+  C:00ACH         PUBLIC        refresh
+  C:00F5H         PUBLIC        numberTable
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          REFRESH
+  -------         DO            
+  D:0007H         SYMBOL        rand_temp
+  D:0004H         SYMBOL        cnt
+  -------         ENDDO         
+  C:00ACH         LINE#         7
+  C:00ACH         LINE#         8
+  C:00AEH         LINE#         10
+  C:00B1H         LINE#         11
+  C:00BCH         LINE#         12
+  C:00C2H         LINE#         13
+  C:00CDH         LINE#         14
+  -------         ENDPROC       REFRESH
+  -------         PROC          SYSTEMINIT
+  C:00CEH         LINE#         39
+  C:00CEH         LINE#         40
+  C:00D1H         LINE#         41
+  C:00D4H         LINE#         42
+  C:00D7H         LINE#         43
+  C:00D9H         LINE#         44
+  C:00DBH         LINE#         45
+  C:00DEH         LINE#         46
+  C:00E0H         LINE#         47
+  C:00E2H         LINE#         48
+  C:00E4H         LINE#         49
+  C:00E6H         LINE#         50
+  C:00E8H         LINE#         51
+  C:00EAH         LINE#         52
+  C:00EEH         LINE#         53
+  -------         ENDPROC       SYSTEMINIT
+  -------         PROC          MAIN
+  C:0006H         LINE#         55
+  C:0006H         LINE#         56
+  C:0009H         LINE#         57
+  C:0009H         LINE#         58
+  -------         ENDPROC       MAIN
+  -------         PROC          RANDOM
+  C:0086H         LINE#         61
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  03/28/2021  22:56:33  PAGE 4
+
+
+  C:0097H         LINE#         62
+  C:009AH         LINE#         63
+  C:009DH         LINE#         64
+  -------         ENDPROC       RANDOM
+  -------         PROC          TIMER0_IRQ
+  C:000EH         LINE#         66
+  C:001BH         LINE#         67
+  C:001EH         LINE#         68
+  C:0021H         LINE#         69
+  C:002EH         LINE#         70
+  C:0041H         LINE#         71
+  C:0041H         LINE#         72
+  C:004BH         LINE#         73
+  C:004DH         LINE#         74
+  C:004DH         LINE#         75
+  C:0057H         LINE#         76
+  C:0059H         LINE#         77
+  C:0059H         LINE#         78
+  C:0063H         LINE#         79
+  C:0065H         LINE#         80
+  C:0065H         LINE#         81
+  C:007BH         LINE#         82
+  C:007BH         LINE#         83
+  C:007BH         LINE#         84
+  C:007BH         LINE#         85
+  C:007BH         LINE#         86
+  -------         ENDPROC       TIMER0_IRQ
+  -------         ENDMOD        MAIN
+
+Program Size: data=16.0 xdata=0 code=267
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

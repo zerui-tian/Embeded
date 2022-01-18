@@ -1,0 +1,125 @@
+C51 COMPILER V9.60.0.0   LCD1602                                                           03/28/2021 22:51:22 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE LCD1602
+OBJECT MODULE PLACED IN .\Objects\LCD1602.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE LCD1602.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\L
+                    -CD1602.lst) TABS(2) OBJECT(.\Objects\LCD1602.obj)
+
+line level    source
+
+   1          #include<LCD1602.h>
+   2          #include<reg51.h>
+   3          #include<intrins.h>
+   4          
+   5          #define DATA P1
+   6          
+   7          sbit LCD1602_RS = P3^7;
+   8          sbit LCD1602_RW = P3^6;
+   9          sbit LCD1602_EN = P3^5;
+  10          
+  11          void delay_ms(unsigned int z){
+  12   1        unsigned int i,j;
+  13   1        for(i=z;i>0;i--)
+  14   1        for(j=110;j>0;j--);
+  15   1      }
+  16          
+  17          unsigned char LCD1602_ReadBusy(){
+  18   1        unsigned char temp;
+  19   1        LCD1602_RS=0;
+  20   1        LCD1602_RW=1;
+  21   1        _nop_();
+  22   1        DATA=0xff;
+  23   1      
+  24   1        _nop_();
+  25   1        LCD1602_EN=1;
+  26   1        _nop_();
+  27   1        temp=DATA;
+  28   1        _nop_();
+  29   1        LCD1602_EN=0;
+  30   1        return (temp&0x80);
+  31   1      }
+  32          
+  33          void LCD1602_WriteCom(unsigned char com){
+  34   1        while(LCD1602_ReadBusy());
+  35   1        LCD1602_RS=0;
+  36   1        LCD1602_RW=0;
+  37   1        _nop_();
+  38   1        DATA=com;
+  39   1        _nop_();
+  40   1        LCD1602_EN=1;
+  41   1        _nop_();
+  42   1        _nop_();
+  43   1        LCD1602_EN=0;
+  44   1        _nop_();
+  45   1        _nop_();   
+  46   1      }
+  47          
+  48          void LCD1602_WriteData(unsigned char dat){
+  49   1        while(LCD1602_ReadBusy());
+  50   1        LCD1602_RS=1;
+  51   1        LCD1602_RW=0;
+  52   1        _nop_();
+  53   1        DATA=dat;
+  54   1        _nop_();
+C51 COMPILER V9.60.0.0   LCD1602                                                           03/28/2021 22:51:22 PAGE 2   
+
+  55   1        LCD1602_EN=1;
+  56   1        _nop_();
+  57   1        _nop_();
+  58   1        LCD1602_EN=0;
+  59   1        _nop_();
+  60   1        _nop_();   
+  61   1      }
+  62          
+  63          void LCD1602_Init(){
+  64   1        delay_ms(15);
+  65   1        LCD1602_WriteCom(0x38);
+  66   1        delay_ms(5);
+  67   1        LCD1602_WriteCom(0x38);
+  68   1        delay_ms(5);
+  69   1        LCD1602_WriteCom(0x38);
+  70   1        LCD1602_WriteCom(0x0c);
+  71   1        LCD1602_WriteCom(0x01);
+  72   1        LCD1602_WriteCom(0x06);
+  73   1      }
+  74          
+  75          void LCD1602_Refresh(unsigned char stringOnLine1[], unsigned char stringOnLine2[]){
+  76   1        unsigned char cnt;
+  77   1        
+  78   1        cnt = 0;
+  79   1        LCD1602_WriteCom(0x80);
+  80   1        while(stringOnLine1[cnt] != '\0' && cnt < 16) {
+  81   2          LCD1602_WriteData(stringOnLine1[cnt]);
+  82   2          cnt++;
+  83   2        }
+  84   1        while(cnt < 16){
+  85   2          LCD1602_WriteData(' ');
+  86   2          cnt++;
+  87   2        }
+  88   1        
+  89   1        cnt = 0;
+  90   1        LCD1602_WriteCom(0x80+0x40);
+  91   1        while(stringOnLine1[cnt] != '\0' && cnt < 16) {
+  92   2          LCD1602_WriteData(stringOnLine2[cnt]);
+  93   2          cnt++;
+  94   2        }
+  95   1        while(cnt < 16){
+  96   2          LCD1602_WriteData(' ');
+  97   2          cnt++;
+  98   2        }
+  99   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    274    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

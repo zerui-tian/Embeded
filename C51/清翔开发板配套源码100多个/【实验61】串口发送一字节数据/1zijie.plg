@@ -1,0 +1,15 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\3、开发板配套C实验例程100多个\【实验61】串口发送一字节数据\1zijie.uv2
+Project File Date:  08/18/2015
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling 1zijie.c...
+linking...
+Program Size: data=11.0 xdata=0 code=239
+creating hex file from "1zijie"...
+"1zijie" - 0 Error(s), 0 Warning(s).

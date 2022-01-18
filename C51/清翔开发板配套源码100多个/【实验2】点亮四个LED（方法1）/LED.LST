@@ -1,0 +1,54 @@
+C51 COMPILER V8.08   LED                                                                   04/26/2015 23:42:54 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE LED
+OBJECT MODULE PLACED IN LED.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE LED.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 点亮开发板上的第4个发光管                                                                                  
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include <reg51.h> //包含头文件，在“reg51.h”上右键单击，并打开，可以看到它里面的定义
+  17          
+  18          sbit led1=P1^0;  //第一个led是和P1^0口连接的。
+  19          sbit led3=P1^2;
+  20          sbit led5=P1^4;
+  21          sbit led7=P1^6;
+  22          
+  23          void main()
+  24          {
+  25   1              led1=0;    //参照电路图可知，P1^0为低电平，可以让led1点亮。
+  26   1              led3=0;
+  27   1              led5=0;
+  28   1              led7=0;
+  29   1              while(1);//此处设置一个死循环，让程序停留在这里，防止跑飞。
+  30   1      }
+  31          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     10    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

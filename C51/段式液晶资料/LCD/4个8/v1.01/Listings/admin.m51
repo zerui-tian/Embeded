@@ -1,0 +1,548 @@
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                    01/12/2021  08:37:31  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.22.2.0, INVOKED BY:
+C:\KEIL_V5\C51\BIN\BL51.EXE .\Objects\STARTUP.obj, .\Objects\main.obj, .\Objects\ht1621.obj TO .\Objects\admin PRINT (.\
+>> Listings\admin.m51)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  .\Objects\STARTUP.obj (?C_STARTUP)
+  .\Objects\main.obj (MAIN)
+  .\Objects\ht1621.obj (HT1621)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C_INIT)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C?CLDPTR)
+  C:\KEIL_V5\C51\LIB\C51S.LIB (?C?UIDIV)
+
+
+LINK MAP OF MODULE:  .\Objects\admin (?C_STARTUP)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0042H     UNIT         ?DT?HT1621
+            DATA    004AH     0027H     UNIT         _DATA_GROUP_
+            IDATA   0071H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     00D8H     UNIT         ?PR?HT1621_DISPLAY?HT1621
+            CODE    00DBH     0090H     UNIT         ?PR?HT1621_TEST?HT1621
+            CODE    016BH     008CH     UNIT         ?C_C51STARTUP
+            CODE    01F7H     007FH     UNIT         ?PR?_WRITENDATAHT1621?HT1621
+            CODE    0276H     007CH     UNIT         ?PR?HT1621_NUM_INIT?HT1621
+            CODE    02F2H     0079H     UNIT         ?PR?_HT1621_DISALL?HT1621
+            CODE    036BH     006EH     UNIT         ?C?LIB_CODE
+            CODE    03D9H     0056H     UNIT         ?PR?_WRITE1DATAHT1621?HT1621
+            CODE    042FH     0037H     UNIT         ?PR?_WRITECOMMANDHT1621?HT1621
+            CODE    0466H     002FH     UNIT         ?PR?HT1621_INIT?HT1621
+            CODE    0495H     002AH     UNIT         ?C_INITSEG
+            CODE    04BFH     0027H     UNIT         ?PR?_HT1621_DISSEGOFF?HT1621
+            CODE    04E6H     0026H     UNIT         ?PR?_HT1621_DISSEGON?HT1621
+            CODE    050CH     0022H     UNIT         ?PR?_HT1621_DELAY_MS?HT1621
+            CODE    052EH     001EH     UNIT         ?PR?WRITECLOCKHT1621?HT1621
+            CODE    054CH     001BH     UNIT         ?PR?_HT1621_DELAY_US?HT1621
+            CODE    0567H     0016H     UNIT         ?PR?MAIN?MAIN
+            CODE    057DH     000AH     UNIT         ?PR?HT1621_HALT?HT1621
+
+
+
+OVERLAY MAP OF MODULE:   .\Objects\admin (?C_STARTUP)
+
+
+SEGMENT                                  DATA_GROUP 
+  +--> CALLED SEGMENT                  START    LENGTH
+------------------------------------------------------
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 2
+
+
+?C_C51STARTUP                          -----    -----
+  +--> ?PR?MAIN?MAIN
+  +--> ?C_INITSEG
+
+?PR?MAIN?MAIN                          -----    -----
+  +--> ?PR?HT1621_INIT?HT1621
+  +--> ?PR?HT1621_DISPLAY?HT1621
+  +--> ?PR?_HT1621_DELAY_MS?HT1621
+  +--> ?PR?HT1621_TEST?HT1621
+
+?PR?HT1621_INIT?HT1621                 -----    -----
+  +--> ?PR?_WRITECOMMANDHT1621?HT1621
+  +--> ?PR?HT1621_NUM_INIT?HT1621
+
+?PR?_WRITECOMMANDHT1621?HT1621         -----    -----
+  +--> ?PR?WRITECLOCKHT1621?HT1621
+  +--> ?PR?_HT1621_DELAY_US?HT1621
+
+?PR?WRITECLOCKHT1621?HT1621            -----    -----
+  +--> ?PR?_HT1621_DELAY_US?HT1621
+
+?PR?HT1621_DISPLAY?HT1621              004AH    0003H
+  +--> ?PR?_WRITE1DATAHT1621?HT1621
+
+?PR?_WRITE1DATAHT1621?HT1621           -----    -----
+  +--> ?PR?WRITECLOCKHT1621?HT1621
+  +--> ?PR?_HT1621_DELAY_US?HT1621
+
+?PR?HT1621_TEST?HT1621                 -----    -----
+  +--> ?PR?_HT1621_DISALL?HT1621
+  +--> ?PR?_HT1621_DELAY_MS?HT1621
+  +--> ?PR?_HT1621_DISSEGON?HT1621
+  +--> ?PR?_HT1621_DISSEGOFF?HT1621
+
+?PR?_HT1621_DISALL?HT1621              004AH    0020H
+  +--> ?PR?_WRITENDATAHT1621?HT1621
+
+?PR?_WRITENDATAHT1621?HT1621           006AH    0007H
+  +--> ?PR?WRITECLOCKHT1621?HT1621
+  +--> ?PR?_HT1621_DELAY_US?HT1621
+
+?PR?_HT1621_DISSEGON?HT1621            -----    -----
+  +--> ?PR?_WRITE1DATAHT1621?HT1621
+
+?PR?_HT1621_DISSEGOFF?HT1621           -----    -----
+  +--> ?PR?_WRITE1DATAHT1621?HT1621
+
+
+
+SYMBOL TABLE OF MODULE:  .\Objects\admin (?C_STARTUP)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        ?C_STARTUP
+  C:016BH         SEGMENT       ?C_C51STARTUP
+  I:0071H         SEGMENT       ?STACK
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 3
+
+
+  C:0000H         PUBLIC        ?C_STARTUP
+  D:00E0H         SYMBOL        ACC
+  D:00F0H         SYMBOL        B
+  D:0083H         SYMBOL        DPH
+  D:0082H         SYMBOL        DPL
+  N:0000H         SYMBOL        IBPSTACK
+  N:0100H         SYMBOL        IBPSTACKTOP
+  N:0080H         SYMBOL        IDATALEN
+  C:016EH         SYMBOL        IDATALOOP
+  N:0000H         SYMBOL        PBPSTACK
+  N:0100H         SYMBOL        PBPSTACKTOP
+  N:0000H         SYMBOL        PDATALEN
+  N:0000H         SYMBOL        PDATASTART
+  N:0000H         SYMBOL        PPAGE
+  N:0000H         SYMBOL        PPAGEENABLE
+  D:00A0H         SYMBOL        PPAGE_SFR
+  D:0081H         SYMBOL        SP
+  C:016BH         SYMBOL        STARTUP1
+  N:0000H         SYMBOL        XBPSTACK
+  N:0000H         SYMBOL        XBPSTACKTOP
+  N:0000H         SYMBOL        XDATALEN
+  N:0000H         SYMBOL        XDATASTART
+  C:0000H         LINE#         126
+  C:016BH         LINE#         133
+  C:016DH         LINE#         134
+  C:016EH         LINE#         135
+  C:016FH         LINE#         136
+  C:0171H         LINE#         185
+  C:0174H         LINE#         196
+  -------         ENDMOD        ?C_STARTUP
+
+  -------         MODULE        MAIN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  C:0567H         PUBLIC        main
+  B:0080H.4       PUBLIC        GND
+  B:0080H.3       PUBLIC        VCC
+  -------         PROC          MAIN
+  C:0567H         LINE#         16
+  C:0567H         LINE#         17
+  C:0567H         LINE#         18
+  C:0569H         LINE#         19
+  C:056BH         LINE#         21
+  C:056EH         LINE#         23
+  C:056EH         LINE#         24
+  C:056EH         LINE#         25
+  C:0571H         LINE#         26
+  C:0578H         LINE#         27
+  C:057BH         LINE#         28
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        MAIN
+
+  -------         MODULE        HT1621
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  C:0552H         PUBLIC        _HT1621_Delay_us
+  C:02F2H         PUBLIC        _HT1621_DisAll
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 4
+
+
+  D:0008H         PUBLIC        LCD_RAM_Tab
+  C:0003H         PUBLIC        HT1621_Display
+  C:03DFH         PUBLIC        _Write1DataHT1621
+  D:001FH         PUBLIC        HT1621_addrbit
+  B:0080H.0       PUBLIC        HT1621_CS_PIN
+  C:04BFH         PUBLIC        _HT1621_DisSegOff
+  C:0276H         PUBLIC        HT1621_num_init
+  B:0080H.1       PUBLIC        HT1621_WR_PIN
+  C:042FH         PUBLIC        _WriteCommandHT1621
+  D:0020H         PUBLIC        HT1621_dispram
+  D:0028H         PUBLIC        HT1621_segtab
+  C:04E6H         PUBLIC        _HT1621_DisSegOn
+  D:0030H         PUBLIC        LED_Tab
+  D:0047H         PUBLIC        HT1621_maxcom
+  C:057DH         PUBLIC        HT1621_Halt
+  C:0466H         PUBLIC        HT1621_Init
+  C:01F7H         PUBLIC        _WritenDataHT1621
+  C:053EH         PUBLIC        WriteClockHT1621
+  C:00DBH         PUBLIC        HT1621_Test
+  B:0080H.2       PUBLIC        HT1621_DAT_PIN
+  D:0048H         PUBLIC        HT1621_comi
+  D:0049H         PUBLIC        HT1621_segi
+  C:0510H         PUBLIC        _HT1621_Delay_ms
+  C:054CH         SYMBOL        L?0091
+  C:054EH         SYMBOL        L?0092
+  -------         PROC          L?0090
+  -------         ENDPROC       L?0090
+  C:054CH         SYMBOL        L?0091
+  C:054EH         SYMBOL        L?0092
+  -------         PROC          _HT1621_DELAY_US
+  D:0006H         SYMBOL        ucDat
+  C:0552H         LINE#         23
+  C:0552H         LINE#         24
+  C:0552H         LINE#         25
+  C:055CH         LINE#         26
+  C:055CH         LINE#         27
+  C:0560H         LINE#         28
+  C:0564H         LINE#         29
+  C:0566H         LINE#         30
+  -------         ENDPROC       _HT1621_DELAY_US
+  C:050CH         SYMBOL        L?0094
+  -------         PROC          L?0093
+  -------         ENDPROC       L?0093
+  C:050CH         SYMBOL        L?0094
+  -------         PROC          _HT1621_DELAY_MS
+  D:0006H         SYMBOL        ucDat
+  -------         DO            
+  D:0006H         SYMBOL        a
+  D:0004H         SYMBOL        b
+  -------         ENDDO         
+  C:0510H         LINE#         38
+  C:0510H         LINE#         39
+  C:0510H         LINE#         42
+  C:0519H         LINE#         43
+  C:0519H         LINE#         44
+  C:0526H         LINE#         45
+  C:052DH         LINE#         46
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 5
+
+
+  -------         ENDPROC       _HT1621_DELAY_MS
+  C:052EH         SYMBOL        L?0088
+  -------         PROC          L?0087
+  -------         ENDPROC       L?0087
+  C:052EH         SYMBOL        L?0088
+  -------         PROC          WRITECLOCKHT1621
+  C:053EH         LINE#         52
+  C:053EH         LINE#         53
+  C:053EH         LINE#         54
+  C:0540H         LINE#         55
+  C:0543H         LINE#         56
+  C:0545H         LINE#         57
+  -------         ENDPROC       WRITECLOCKHT1621
+  -------         PROC          _WRITECOMMANDHT1621
+  D:0005H         SYMBOL        FunctonCode
+  -------         DO            
+  D:0003H         SYMBOL        Shift
+  D:0002H         SYMBOL        i
+  -------         ENDDO         
+  C:042FH         LINE#         64
+  C:0431H         LINE#         65
+  C:0431H         LINE#         66
+  C:0433H         LINE#         69
+  C:0433H         LINE#         70
+  C:0433H         LINE#         72
+  C:0433H         LINE#         73
+  C:0433H         LINE#         74
+  C:0433H         LINE#         75
+  C:0436H         LINE#         76
+  C:0438H         LINE#         77
+  C:043BH         LINE#         79
+  C:0447H         LINE#         80
+  C:0447H         LINE#         81
+  C:044BH         LINE#         82
+  C:044FH         LINE#         84
+  C:0451H         LINE#         86
+  C:0454H         LINE#         87
+  C:0458H         LINE#         88
+  C:045BH         LINE#         89
+  C:045DH         LINE#         90
+  C:0460H         LINE#         92
+  C:0460H         LINE#         93
+  C:0463H         LINE#         94
+  C:0465H         LINE#         95
+  -------         ENDPROC       _WRITECOMMANDHT1621
+  -------         PROC          L?0089
+  -------         ENDPROC       L?0089
+  -------         PROC          _WRITE1DATAHT1621
+  D:0001H         SYMBOL        Addr
+  D:0005H         SYMBOL        Dat
+  -------         DO            
+  D:0002H         SYMBOL        i
+  D:0003H         SYMBOL        Shift
+  -------         ENDDO         
+  C:03DFH         LINE#         102
+  C:03E1H         LINE#         103
+  C:03E1H         LINE#         107
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 6
+
+
+  C:03E1H         LINE#         108
+  C:03E1H         LINE#         110
+  C:03E1H         LINE#         111
+  C:03E1H         LINE#         112
+  C:03E1H         LINE#         113
+  C:03E4H         LINE#         114
+  C:03E6H         LINE#         115
+  C:03E9H         LINE#         117
+  C:03EBH         LINE#         118
+  C:03F3H         LINE#         119
+  C:03F3H         LINE#         120
+  C:03F7H         LINE#         121
+  C:03FBH         LINE#         123
+  C:03FDH         LINE#         124
+  C:0400H         LINE#         125
+  C:0404H         LINE#         126
+  C:0407H         LINE#         128
+  C:0409H         LINE#         129
+  C:0415H         LINE#         130
+  C:0415H         LINE#         131
+  C:0419H         LINE#         132
+  C:041DH         LINE#         134
+  C:041FH         LINE#         135
+  C:0422H         LINE#         136
+  C:0426H         LINE#         137
+  C:0429H         LINE#         138
+  C:0429H         LINE#         139
+  C:042CH         LINE#         140
+  C:042EH         LINE#         141
+  -------         ENDPROC       _WRITE1DATAHT1621
+  -------         PROC          _WRITENDATAHT1621
+  D:006AH         SYMBOL        Addr
+  D:006BH         SYMBOL        Databuf
+  D:006EH         SYMBOL        Cnt
+  -------         DO            
+  D:0005H         SYMBOL        i
+  D:006FH         SYMBOL        j
+  D:0070H         SYMBOL        Shift
+  D:0003H         SYMBOL        dataval
+  -------         ENDDO         
+  C:01F7H         LINE#         149
+  C:01FFH         LINE#         150
+  C:01FFH         LINE#         155
+  C:01FFH         LINE#         156
+  C:01FFH         LINE#         158
+  C:01FFH         LINE#         159
+  C:01FFH         LINE#         160
+  C:01FFH         LINE#         161
+  C:0202H         LINE#         162
+  C:0204H         LINE#         163
+  C:0207H         LINE#         165
+  C:020AH         LINE#         166
+  C:0212H         LINE#         167
+  C:0212H         LINE#         168
+  C:0218H         LINE#         169
+  C:021CH         LINE#         171
+  C:021EH         LINE#         172
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 7
+
+
+  C:0221H         LINE#         173
+  C:0227H         LINE#         174
+  C:022AH         LINE#         176
+  C:0234H         LINE#         177
+  C:0234H         LINE#         178
+  C:0237H         LINE#         179
+  C:0249H         LINE#         180
+  C:0255H         LINE#         181
+  C:0255H         LINE#         182
+  C:025AH         LINE#         183
+  C:025EH         LINE#         185
+  C:0260H         LINE#         186
+  C:0263H         LINE#         187
+  C:0269H         LINE#         188
+  C:026CH         LINE#         189
+  C:0270H         LINE#         190
+  C:0270H         LINE#         191
+  C:0273H         LINE#         192
+  C:0275H         LINE#         193
+  -------         ENDPROC       _WRITENDATAHT1621
+  -------         PROC          _HT1621_DISALL
+  D:0007H         SYMBOL        state
+  -------         DO            
+  D:0006H         SYMBOL        segi
+  D:004AH         SYMBOL        dispram
+  -------         ENDDO         
+  C:02F2H         LINE#         200
+  C:02F2H         LINE#         201
+  C:02F2H         LINE#         205
+  C:02FEH         LINE#         206
+  C:02FEH         LINE#         207
+  C:0304H         LINE#         208
+  C:0307H         LINE#         209
+  C:0313H         LINE#         210
+  C:0313H         LINE#         211
+  C:0318H         LINE#         212
+  C:0318H         LINE#         213
+  C:0320H         LINE#         214
+  C:0328H         LINE#         215
+  C:032EH         LINE#         216
+  C:0336H         LINE#         217
+  C:033CH         LINE#         218
+  C:0342H         LINE#         219
+  C:0344H         LINE#         221
+  C:0344H         LINE#         222
+  C:034AH         LINE#         223
+  C:034AH         LINE#         224
+  C:035AH         LINE#         225
+  C:035DH         LINE#         226
+  -------         ENDPROC       _HT1621_DISALL
+  -------         PROC          _HT1621_DISSEGON
+  D:0007H         SYMBOL        Seg
+  D:0005H         SYMBOL        Com
+  C:04E6H         LINE#         234
+  C:04E6H         LINE#         235
+  C:04E6H         LINE#         236
+  C:0500H         LINE#         237
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 8
+
+
+  -------         ENDPROC       _HT1621_DISSEGON
+  -------         PROC          _HT1621_DISSEGOFF
+  D:0007H         SYMBOL        Seg
+  D:0005H         SYMBOL        Com
+  C:04BFH         LINE#         244
+  C:04BFH         LINE#         245
+  C:04BFH         LINE#         246
+  C:04DAH         LINE#         247
+  -------         ENDPROC       _HT1621_DISSEGOFF
+  -------         PROC          HT1621_HALT
+  C:057DH         LINE#         254
+  C:057DH         LINE#         255
+  C:057DH         LINE#         258
+  C:0582H         LINE#         259
+  -------         ENDPROC       HT1621_HALT
+  -------         PROC          HT1621_INIT
+  C:0466H         LINE#         266
+  C:0466H         LINE#         267
+  C:0466H         LINE#         268
+  C:0468H         LINE#         269
+  C:046AH         LINE#         270
+  C:046CH         LINE#         272
+  C:0471H         LINE#         273
+  C:0476H         LINE#         276
+  C:047EH         LINE#         301
+  C:0483H         LINE#         302
+  C:0488H         LINE#         303
+  C:048DH         LINE#         304
+  C:0492H         LINE#         306
+  -------         ENDPROC       HT1621_INIT
+  -------         PROC          HT1621_NUM_INIT
+  -------         DO            
+  D:0007H         SYMBOL        num
+  D:0006H         SYMBOL        LCD_data
+  -------         ENDDO         
+  C:0276H         LINE#         335
+  C:0276H         LINE#         336
+  C:0276H         LINE#         339
+  C:0282H         LINE#         340
+  C:0282H         LINE#         341
+  C:0282H         LINE#         342
+  C:0292H         LINE#         343
+  C:029EH         LINE#         344
+  C:02AEH         LINE#         345
+  C:02B7H         LINE#         347
+  C:02C8H         LINE#         348
+  C:02D3H         LINE#         349
+  C:02E1H         LINE#         350
+  C:02E8H         LINE#         352
+  C:02EEH         LINE#         353
+  C:02F1H         LINE#         354
+  -------         ENDPROC       HT1621_NUM_INIT
+  -------         PROC          HT1621_TEST
+  C:00DBH         LINE#         356
+  C:00DBH         LINE#         357
+  C:00DBH         LINE#         358
+  C:00E0H         LINE#         359
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 9
+
+
+  C:00E3H         LINE#         360
+  C:00E8H         LINE#         361
+  C:00EBH         LINE#         363
+  C:00F9H         LINE#         364
+  C:00F9H         LINE#         365
+  C:0103H         LINE#         366
+  C:0103H         LINE#         367
+  C:010FH         LINE#         368
+  C:0116H         LINE#         369
+  C:011BH         LINE#         370
+  C:011FH         LINE#         371
+  C:0123H         LINE#         373
+  C:0128H         LINE#         374
+  C:012BH         LINE#         375
+  C:0139H         LINE#         376
+  C:0139H         LINE#         377
+  C:0143H         LINE#         378
+  C:0143H         LINE#         379
+  C:014FH         LINE#         380
+  C:0156H         LINE#         381
+  C:015BH         LINE#         382
+  C:015FH         LINE#         383
+  C:0163H         LINE#         384
+  C:0166H         LINE#         385
+  -------         ENDPROC       HT1621_TEST
+  -------         PROC          HT1621_DISPLAY
+  -------         DO            
+  D:004AH         SYMBOL        Temp
+  D:004CH         SYMBOL        Temp_Data
+  -------         ENDDO         
+  C:0003H         LINE#         393
+  C:0003H         LINE#         394
+  C:0003H         LINE#         395
+  C:0009H         LINE#         398
+  C:0016H         LINE#         399
+  C:001EH         LINE#         400
+  C:002AH         LINE#         402
+  C:0044H         LINE#         403
+  C:004CH         LINE#         404
+  C:0058H         LINE#         406
+  C:007FH         LINE#         407
+  C:008DH         LINE#         408
+  C:0099H         LINE#         410
+  C:00C0H         LINE#         411
+  C:00CFH         LINE#         412
+  -------         ENDPROC       HT1621_DISPLAY
+  -------         ENDMOD        HT1621
+
+  -------         MODULE        ?C?CLDPTR
+  C:036BH         PUBLIC        ?C?CLDPTR
+  -------         ENDMOD        ?C?CLDPTR
+
+  -------         MODULE        ?C?UIDIV
+  C:0384H         PUBLIC        ?C?UIDIV
+  -------         ENDMOD        ?C?UIDIV
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+BL51 BANKED LINKER/LOCATER V6.22.2.0                                                  01/12/2021  08:37:31  PAGE 10
+
+
+    SEGMENT: ?PR?HT1621_HALT?HT1621
+
+Program Size: data=114.0 xdata=0 code=1415
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)

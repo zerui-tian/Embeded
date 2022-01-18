@@ -1,0 +1,101 @@
+C51 COMPILER V8.08   MAIN                                                                  08/19/2015 12:54:25 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： NRF结合1602单机显示
+  12                                                                                              
+  13          * 【使用说明】： 液晶1脚接1602黑色排母的1脚  如果是无背光的液晶只有14个脚 排母右边空2个位   
+  14                           请把液晶对比度电位器顺时针调制10点钟方向，请勿多调超出极限位置会损坏电位器！
+  15          
+  16                                           NRF24L01+模块接在开发板无线模块液晶 天线指向开发板键盘一定不能接错，接错则
+  17                                           损坏模块
+  18          
+  19                                           1602液晶显示模块地址，状态寄存器显示14 配置寄存器显示15 表示成功
+  20          *  说明：免费开源，不提供源代码分析.
+  21          **********************************************************************************/
+  22          #include "reg52.h"      /*包含STC单片机头文件*/
+  23          #include "QX51/qx51.h" /*包含qx51开发板头文件*/
+  24          #include "DELAY/delay.h"/*包含delay延时函数文件*/
+  25          #include "DS1602/ds1602.h" //包含1602驱动
+  26          #include "NRF/NRFreceive.h"//包涵NRF驱动
+  27          
+  28          uchar buf0[5]={0,0,0,0,0};      //用于储存NRF接收地址的数组
+  29          
+  30          void main()
+  31          {
+  32   1              qx51_init();//QX开发板初始化
+  33   1              init_1602();//1602初始化
+  34   1              nrf24l01_init(); //NRF初始化
+  35   1              setRX_Mode(); //设置为接收模式
+  36   1      
+  37   1              SPI_Read_Buf(READ_REG+RX_ADDR_P0,buf0,TX_PLOAD_WIDTH); //读NRF的接收地址
+  38   1      
+  39   1              delay_ms(100);
+  40   1      
+  41   1              lcd_dis(0,0,"RX_ADDR_P0:");     //提示显示NRF接收端的地址
+  42   1      
+  43   1         /************************************************/
+  44   1         //执行显示NRF的接收地址到1602上
+  45   1              lcd_dis(1,0,uchartostr(buf0[0]));
+  46   1              lcd_dis(1,2," ");
+  47   1      
+  48   1              lcd_dis(1,3,uchartostr(buf0[1]));
+  49   1              lcd_dis(1,5," ");
+  50   1      
+  51   1              lcd_dis(1,6,uchartostr(buf0[2]));
+  52   1              lcd_dis(1,8," ");
+  53   1      
+  54   1              lcd_dis(1,9,uchartostr(buf0[3]));
+  55   1              lcd_dis(1,11," ");
+C51 COMPILER V8.08   MAIN                                                                  08/19/2015 12:54:25 PAGE 2   
+
+  56   1      
+  57   1              lcd_dis(1,12,uchartostr(buf0[4]));
+  58   1      
+  59   1              delay_ms(5000);
+  60   1              write_com(0x01);   //清屏幕指令，将以前的显示内容清除
+  61   1              delay_ms(5);
+  62   1              /************************************************/
+  63   1      
+  64   1              /************************************************/
+  65   1              //读NRF STATUS的值  STATUS上电复位后的值为14
+  66   1              lcd_dis( 0,0,"NRF-STATUS:");
+  67   1              lcd_dis( 0,12,uchartostr( SPI_Read(STATUS) ) );    
+  68   1              
+  69   1              //读NRF CONFIG的值  CONFIG在接收模式下为15 如何把 setRX_Mode() 注解掉就为上电复位值8
+  70   1              lcd_dis( 1,0,"NRF-CONFIG:");
+  71   1              lcd_dis( 1,12,uchartostr( SPI_Read(CONFIG) ) );
+  72   1              /************************************************/
+  73   1      
+  74   1      
+  75   1              while(1);
+  76   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    233    ----
+   CONSTANT SIZE    =     38    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      5    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

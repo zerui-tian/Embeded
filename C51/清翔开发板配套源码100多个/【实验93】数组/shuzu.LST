@@ -1,0 +1,69 @@
+C51 COMPILER V8.08   SHUZU                                                                 08/19/2015 11:10:00 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE SHUZU
+OBJECT MODULE PLACED IN shuzu.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE shuzu.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：      演示数组的使用方法，使其完成led接连闪烁的效果。
+  17                                  利用数组将某变量可能取的值组织起来，方便使用。
+  18          ****************************************************************************/
+  19          #include <reg52.h>
+  20          
+  21          unsigned char code table[]={0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0x7f};
+  22          //分别使某一位LED点亮的P1口电平分布数组。
+  23          
+  24          void delay()
+  25          {
+  26   1              unsigned int p,q;
+  27   1              for(p=100;p>0;p--)
+  28   1                      for(q=100;q>0;q--);
+  29   1      }
+  30          
+  31          void main()
+  32          {
+  33   1              char m;  //每个变量在使用前，必须要加以声明。
+  34   1              while(1) //下面的代码无限循环，效果便是led一遍遍的闪烁。
+  35   1              {
+  36   2                      P1=table[m];//这就是数组的调用方法，m值为几，即调用数组第几个值（数组中数值的编号从0开始）
+  37   2                      m++;//改变此m值，便可调用到数组中不同的值。开始时m=0，调用到值0xfe。从而点亮第一个数码管。（QX-MCS51上，
+             -为低电平点亮LED，高电平熄灭LED）
+  38   2                      if(m==8)//由于led只有八位，而m是从0开始取值的，故当m=8时，0-7位已经亮完了应将其归零。
+  39   2                      m=0;
+  40   2                      delay();
+  41   2              }
+  42   1      }
+  43                                                          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     63    ----
+   CONSTANT SIZE    =      8    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V8.08   SHUZU                                                                 08/19/2015 11:10:00 PAGE 2   
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

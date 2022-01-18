@@ -1,0 +1,932 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listing
+                    -s\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include<LCD1602.h>
+   2          #include<reg52.h>
+   3          
+   4          /***********
+   5           *  Modes  *
+   6           ***********/
+   7          #define NORMAL        0
+   8          #define ADJUSTYEAR    1
+   9          #define ADJUSTMONTH   2
+  10          #define ADJUSTDATE    3
+  11          #define ADJUSTWEEKDAY 4
+  12          #define ADJUSTHOUR    5
+  13          #define ADJUSTMINUTE  6
+  14          #define RESETSECOND   7
+  15          #define CHANGELIGHT   8
+  16          #define SWITCHSOUND   9
+  17          #define UPDATESTATE   10
+  18          char mode = NORMAL;
+  19          
+  20          /**********
+  21           *  Time  *
+  22           **********/
+  23          #define SECOND 0
+  24          #define MINUTE 1
+  25          #define HOUR 2
+  26          #define WEEKDAY 3
+  27          #define DAY 4
+  28          #define MONTH 5
+  29          #define YEAR 6
+  30          int innerClock[7] = {0,0,0,4,1,1,1970};
+  31          int receivedTimeBuffer1[7];
+  32          int receivedTimeBuffer2[7];
+  33          idata int *currentReceivedTime = receivedTimeBuffer1;
+  34          idata int *lastReceivedTime = receivedTimeBuffer2;
+  35          idata int *addrExchangeTempVar;
+  36          bit refreshTimeFlag = 0;
+  37          
+  38          /******************************
+  39           *  Flags of light and sound  *
+  40           ******************************/
+  41          #define OFF   0
+  42          #define ON    1
+  43          #define AUTO  2
+  44          char light = OFF;
+  45          char colorCode = 7;
+  46          bit hourlyChime = ON;
+  47          
+  48          #define DELAYXMS      20
+  49          
+  50          sbit test = P2^4;
+  51          
+  52          /********************************************
+  53           *  Radio Signal and Antenna Control Ports  *
+  54           ********************************************/
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 2   
+
+  55          sbit antennaIsOff = P3^4;
+  56          sbit signal = P3^2;
+  57          
+  58          /***************************
+  59           *  Light and Sound Ports  *
+  60           ***************************/
+  61          sbit red = P2^7;
+  62          sbit green = P2^6;
+  63          sbit blue = P2^5;
+  64          sbit buzz = P2^0;
+  65          
+  66          /*******************
+  67           *  Buttons Ports  *
+  68           *******************/
+  69          sbit middle = P1^7;
+  70          sbit up = P1^5;
+  71          sbit down = P1^4;
+  72          sbit left = P1^3;
+  73          sbit right = P1^6;
+  74          
+  75          /*********************
+  76           *  Display Strings  *
+  77           *********************/
+  78          idata char displayString1[17];
+  79          idata char displayString2[17];
+  80          
+  81          xdata char updateStatusString1[17] =  "LAST UPDATE TIME";
+  82          xdata char updateStatusString2[17] =  "****-**-** **:**";
+  83          
+  84          xdata char lightModeString1[17] =       "   LIGHT MODE   ";
+  85          xdata char lightModeString2[3][17] = {
+  86            "       Off      ",
+  87            "       On       ",
+  88            "      Auto      "
+  89          };
+  90          
+  91          xdata char soundSwitchString1[17] =     "  HOURLY CHIME  ";
+  92          xdata char soundSwitchString2[2][17] = {
+  93            "       Off      ",
+  94            "       On       "
+  95          };
+  96          
+  97          /*********************
+  98           *  Weekday Strings  *
+  99           *********************/
+ 100          xdata char weekdayTable[7][3] = {
+ 101            {'S','U','N'},
+ 102            {'M','O','N'},
+ 103            {'T','U','E'},
+ 104            {'W','E','D'},
+ 105            {'T','H','U'},
+ 106            {'F','R','I'},
+ 107            {'S','A','T'}
+ 108          };
+ 109          
+ 110          /**************************************
+ 111           *  The number of days in each innerClock[MONTH]  *
+ 112           **************************************/
+ 113          int monthdayAmount[12] = {
+ 114            31,28,31,30,31,30,31,31,30,31,30,31
+ 115          };
+ 116          
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 3   
+
+ 117          /***************************
+ 118           *  Synchronization Flags  *
+ 119           ***************************/
+ 120          bit fipfop = 0;
+ 121          bit phaseSynchronized = 0;
+ 122          bit timeSynchronized = 0;
+ 123          /******************************************
+ 124           *  Synchronization Counters and Buffers  *
+ 125           ******************************************/
+ 126          idata unsigned char mainCounter = 0;
+ 127          idata unsigned int  syncCounter = 0;
+ 128          idata unsigned char freqMatchCounter = 0;
+ 129          idata unsigned char timeMatchCounter = 0;
+ 130          idata unsigned char decodeCounter = 0;
+ 131          idata unsigned char decodeBuffer[20];
+ 132          idata unsigned char decodePointer = 0;
+ 133          
+ 134          void delay(int xms){
+ 135   1        int x,y;
+ 136   1        for(x=xms;x>0;x--){
+ 137   2          for(y=110;y>0;y--){
+ 138   3          }
+ 139   2        }
+ 140   1      }
+ 141          
+ 142          void RefreshTime(){
+ 143   1        
+ 144   1        displayString1[0] = ' ';
+ 145   1        
+ 146   1        displayString1[1] = (mode!=ADJUSTYEAR)||fipfop?('0'+innerClock[YEAR]/1000):' ';
+ 147   1        displayString1[2] = (mode!=ADJUSTYEAR)||fipfop?('0'+(innerClock[YEAR]%1000)/100):' ';
+ 148   1        displayString1[3] = (mode!=ADJUSTYEAR)||fipfop?('0'+(innerClock[YEAR]%100)/10):' ';
+ 149   1        displayString1[4] = (mode!=ADJUSTYEAR)||fipfop?('0'+innerClock[YEAR]%10):' ';
+ 150   1        
+ 151   1        displayString1[5] = '-';
+ 152   1        
+ 153   1        displayString1[6] = (mode!=ADJUSTMONTH)||fipfop?('0' + innerClock[MONTH]/10):' ';
+ 154   1        displayString1[7] = (mode!=ADJUSTMONTH)||fipfop?('0' + innerClock[MONTH]%10):' ';
+ 155   1      
+ 156   1        displayString1[8] = '-';  
+ 157   1        
+ 158   1        displayString1[9] = (mode!=ADJUSTDATE)||fipfop?('0' + innerClock[DAY]/10):' ';
+ 159   1        displayString1[10] = (mode!=ADJUSTDATE)||fipfop?('0' + innerClock[DAY]%10):' ';
+ 160   1        
+ 161   1        displayString1[11] = ' ';
+ 162   1        
+ 163   1        displayString1[12] = (mode!=ADJUSTWEEKDAY)||fipfop?weekdayTable[innerClock[WEEKDAY]][0]:' ';
+ 164   1        displayString1[13] = (mode!=ADJUSTWEEKDAY)||fipfop?weekdayTable[innerClock[WEEKDAY]][1]:' ';
+ 165   1        displayString1[14] = (mode!=ADJUSTWEEKDAY)||fipfop?weekdayTable[innerClock[WEEKDAY]][2]:' ';
+ 166   1      
+ 167   1        displayString1[15] = ' ';
+ 168   1        
+ 169   1        displayString2[0] = ' ';
+ 170   1        displayString2[1] = ' ';
+ 171   1        displayString2[2] = ' ';
+ 172   1        displayString2[3] = ' ';
+ 173   1        
+ 174   1        displayString2[4] = (mode!=ADJUSTHOUR)||fipfop?('0' + innerClock[HOUR]/10):' ';
+ 175   1        displayString2[5] = (mode!=ADJUSTHOUR)||fipfop?('0' + innerClock[HOUR]%10):' ';
+ 176   1      
+ 177   1        displayString2[6] = (mode!=NORMAL)||fipfop?':':' ';
+ 178   1      
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 4   
+
+ 179   1        displayString2[7] = (mode!=ADJUSTMINUTE)||fipfop?('0' + innerClock[MINUTE]/10):' ';
+ 180   1        displayString2[8] = (mode!=ADJUSTMINUTE)||fipfop?('0' + innerClock[MINUTE]%10):' ';
+ 181   1      
+ 182   1        displayString2[9] = (mode!=NORMAL)||fipfop?':':' ';
+ 183   1      
+ 184   1        displayString2[10] = (mode!=RESETSECOND)||fipfop?('0' + innerClock[SECOND]/10):' ';
+ 185   1        displayString2[11] = (mode!=RESETSECOND)||fipfop?('0' + innerClock[SECOND]%10):' ';
+ 186   1        
+ 187   1        displayString2[12] = ' ';
+ 188   1        displayString2[13] = ' ';
+ 189   1        displayString2[14] = ' ';
+ 190   1        displayString2[15] = ' ';
+ 191   1        
+ 192   1        LCD1602_Refresh(displayString1, displayString2);
+ 193   1      }
+ 194          
+ 195          
+ 196          
+ 197          bit UpdateTime(){
+ 198   1        int monthdayAmountTemp;
+ 199   1        if((currentReceivedTime[SECOND]==1)||(currentReceivedTime[SECOND]==21)||currentReceivedTime[SECOND]==41){
+ 200   2          if(currentReceivedTime[SECOND]==41){
+ 201   3            currentReceivedTime[SECOND] = 0;
+ 202   3            currentReceivedTime[MINUTE]++;
+ 203   3            if(currentReceivedTime[MINUTE] >= 60){
+ 204   4              currentReceivedTime[MINUTE] = 0;
+ 205   4              currentReceivedTime[HOUR]++;
+ 206   4            }
+ 207   3            if(currentReceivedTime[HOUR] >= 24){
+ 208   4              currentReceivedTime[HOUR] = 0;
+ 209   4              currentReceivedTime[DAY]++;
+ 210   4              currentReceivedTime[WEEKDAY] = (currentReceivedTime[WEEKDAY]+1)%7;
+ 211   4            }
+ 212   3            if(currentReceivedTime[MONTH]==2){
+ 213   4              monthdayAmountTemp = 
+ 214   4                ((currentReceivedTime[YEAR]%4==0)&&(currentReceivedTime[YEAR]%100!=0))||(currentReceivedTime[YEAR]%40
+             -0==0) ? 29 : 28;
+ 215   4            }
+ 216   3            else{
+ 217   4              monthdayAmountTemp = monthdayAmount[currentReceivedTime[MONTH]-1];
+ 218   4            }
+ 219   3            if(currentReceivedTime[DAY] > monthdayAmountTemp){
+ 220   4              currentReceivedTime[DAY] = 1;
+ 221   4              currentReceivedTime[MONTH]++;
+ 222   4            }
+ 223   3            if(currentReceivedTime[MONTH] > 12){
+ 224   4              currentReceivedTime[MONTH] = 1;
+ 225   4              currentReceivedTime[YEAR]++;
+ 226   4            }
+ 227   3          }
+ 228   2          else{
+ 229   3            currentReceivedTime[SECOND]+=19;
+ 230   3          }
+ 231   2          
+ 232   2          innerClock[SECOND] = currentReceivedTime[SECOND];
+ 233   2          innerClock[MINUTE] = currentReceivedTime[MINUTE];
+ 234   2          innerClock[HOUR] = currentReceivedTime[HOUR];
+ 235   2          innerClock[WEEKDAY] = currentReceivedTime[WEEKDAY];
+ 236   2          innerClock[DAY] = currentReceivedTime[DAY];
+ 237   2          innerClock[MONTH] = currentReceivedTime[MONTH];
+ 238   2          innerClock[YEAR] = currentReceivedTime[YEAR];
+ 239   2          
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 5   
+
+ 240   2          return 1;
+ 241   2        }
+ 242   1        else{
+ 243   2          return 0;
+ 244   2        }
+ 245   1      }
+ 246          
+ 247          void ChangeColor(){
+ 248   1        if(light == ON){
+ 249   2          red = colorCode&0x01;
+ 250   2          green = colorCode&0x02;
+ 251   2          blue = colorCode&0x04;
+ 252   2        }
+ 253   1        else if(light == OFF){
+ 254   2          red = 0;
+ 255   2          green = 0;
+ 256   2          blue = 0;
+ 257   2        }
+ 258   1      }
+ 259          
+ 260          void MiddleKeyAction(){
+ 261   1        switch(mode){
+ 262   2          case NORMAL:
+ 263   2            mode = ADJUSTYEAR;
+ 264   2            break;
+ 265   2          
+ 266   2          case CHANGELIGHT:
+ 267   2            LCD1602_Refresh(soundSwitchString1,soundSwitchString2[hourlyChime]);
+ 268   2            mode = SWITCHSOUND;
+ 269   2            break;
+ 270   2          
+ 271   2          case SWITCHSOUND:
+ 272   2            LCD1602_Refresh(updateStatusString1,updateStatusString2);
+ 273   2            mode = UPDATESTATE;
+ 274   2            break;
+ 275   2          
+ 276   2          case UPDATESTATE:
+ 277   2            RefreshTime();
+ 278   2            mode = NORMAL;
+ 279   2            break;
+ 280   2          
+ 281   2          default:
+ 282   2            LCD1602_Refresh(lightModeString1,lightModeString2[light]);
+ 283   2            mode = CHANGELIGHT;
+ 284   2            break;
+ 285   2        } 
+ 286   1      }
+ 287          
+ 288          
+ 289          
+ 290          void UpKeyAction(){
+ 291   1        switch(mode){   
+ 292   2          case ADJUSTYEAR:
+ 293   2            EA = 0;
+ 294   2            innerClock[YEAR]++;
+ 295   2            monthdayAmount[1] = 
+ 296   2              ((innerClock[YEAR]%4==0)&&(innerClock[YEAR]%100!=0))||(innerClock[YEAR]%400==0) ? 29 : 28;
+ 297   2            RefreshTime();
+ 298   2            EA = 1;
+ 299   2            break;
+ 300   2          
+ 301   2          case ADJUSTMONTH:
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 6   
+
+ 302   2            EA = 0;
+ 303   2            innerClock[MONTH] = innerClock[MONTH]>=12?1:innerClock[MONTH]+1;
+ 304   2            RefreshTime();
+ 305   2            EA = 1;
+ 306   2            break;
+ 307   2          
+ 308   2          case ADJUSTDATE:
+ 309   2            innerClock[DAY] = innerClock[DAY]>=monthdayAmount[innerClock[MONTH]-1]?1:innerClock[DAY]+1;
+ 310   2            break;
+ 311   2          
+ 312   2          case ADJUSTWEEKDAY:
+ 313   2            innerClock[WEEKDAY] = innerClock[WEEKDAY]>=6?0:innerClock[WEEKDAY]+1;
+ 314   2            RefreshTime();
+ 315   2            break;
+ 316   2          
+ 317   2          case ADJUSTHOUR:
+ 318   2            innerClock[HOUR] = innerClock[HOUR]>=23?0:innerClock[HOUR]+1;
+ 319   2            RefreshTime();
+ 320   2            break;
+ 321   2          
+ 322   2          case ADJUSTMINUTE:
+ 323   2            innerClock[MINUTE] = innerClock[MINUTE]>=59?0:innerClock[MINUTE]+1;
+ 324   2            RefreshTime();
+ 325   2            break;
+ 326   2          
+ 327   2          case RESETSECOND:
+ 328   2            EA = 0;
+ 329   2            innerClock[SECOND] = 0;
+ 330   2            RefreshTime();
+ 331   2            EA = 1;
+ 332   2            break;
+ 333   2          
+ 334   2          case CHANGELIGHT:
+ 335   2            light = (light+1)%3;
+ 336   2            ChangeColor();
+ 337   2            LCD1602_Refresh(lightModeString1,lightModeString2[light]);
+ 338   2            break;
+ 339   2          
+ 340   2          case SWITCHSOUND:
+ 341   2            hourlyChime = ~hourlyChime;
+ 342   2            LCD1602_Refresh(soundSwitchString1,soundSwitchString2[hourlyChime]);
+ 343   2            break;
+ 344   2          
+ 345   2          case UPDATESTATE:
+ 346   2            break;
+ 347   2          
+ 348   2          default:
+ 349   2            /*do nothing*/
+ 350   2            break;
+ 351   2        }
+ 352   1      }
+ 353          
+ 354          void DownKeyAction(){
+ 355   1        switch(mode){   
+ 356   2          case ADJUSTYEAR:
+ 357   2            EA = 0;
+ 358   2            innerClock[YEAR]--;
+ 359   2            monthdayAmount[1] = 
+ 360   2              ((innerClock[YEAR]%4==0)&&(innerClock[YEAR]%100!=0))||(innerClock[YEAR]%400==0) ? 29 : 28;
+ 361   2            RefreshTime();
+ 362   2            EA = 1;
+ 363   2            break;
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 7   
+
+ 364   2          
+ 365   2          case ADJUSTMONTH:
+ 366   2            EA = 0;
+ 367   2            innerClock[MONTH] = innerClock[MONTH]<=1?12:innerClock[MONTH]-1;
+ 368   2            RefreshTime();
+ 369   2            EA = 1;
+ 370   2            break;
+ 371   2          
+ 372   2          case ADJUSTDATE:
+ 373   2            innerClock[DAY] = innerClock[DAY]<=1?monthdayAmount[innerClock[MONTH]-1]:innerClock[DAY]-1;
+ 374   2            break;
+ 375   2          
+ 376   2          case ADJUSTWEEKDAY:
+ 377   2            innerClock[WEEKDAY] = innerClock[WEEKDAY]<=0?6:innerClock[WEEKDAY]-1;
+ 378   2            RefreshTime();
+ 379   2            break;
+ 380   2          
+ 381   2          case ADJUSTHOUR:
+ 382   2            innerClock[HOUR] = innerClock[HOUR]<=0?23:innerClock[HOUR]-1;
+ 383   2            RefreshTime();
+ 384   2            break;
+ 385   2          
+ 386   2          case ADJUSTMINUTE:
+ 387   2            innerClock[MINUTE] = innerClock[MINUTE]<=0?59:innerClock[MINUTE]-1;
+ 388   2            RefreshTime();
+ 389   2            break;
+ 390   2          
+ 391   2          case RESETSECOND:
+ 392   2            EA = 0;
+ 393   2            innerClock[SECOND] = 0;
+ 394   2            RefreshTime();
+ 395   2            EA = 1;
+ 396   2            break;
+ 397   2          
+ 398   2          case CHANGELIGHT:
+ 399   2            light = light<=0?2:light-1;
+ 400   2            ChangeColor();
+ 401   2            LCD1602_Refresh(lightModeString1,lightModeString2[light]);
+ 402   2            break;
+ 403   2          
+ 404   2          case SWITCHSOUND:
+ 405   2            hourlyChime = ~hourlyChime;
+ 406   2            LCD1602_Refresh(soundSwitchString1,soundSwitchString2[hourlyChime]);
+ 407   2            break;
+ 408   2          
+ 409   2          case UPDATESTATE:
+ 410   2            break;
+ 411   2          
+ 412   2          default:
+ 413   2            /*do nothing*/
+ 414   2            break;
+ 415   2        }
+ 416   1      }
+ 417          
+ 418          void LeftKeyAction(){
+ 419   1        switch(mode){
+ 420   2          case ADJUSTYEAR:
+ 421   2            mode = RESETSECOND;
+ 422   2            break;
+ 423   2          
+ 424   2          case ADJUSTMONTH:
+ 425   2            mode = ADJUSTYEAR;
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 8   
+
+ 426   2            break;
+ 427   2          
+ 428   2          case ADJUSTDATE:
+ 429   2            mode = ADJUSTMONTH;
+ 430   2            break;
+ 431   2          
+ 432   2          case ADJUSTWEEKDAY:
+ 433   2            mode = ADJUSTDATE;
+ 434   2            break;
+ 435   2          
+ 436   2          case ADJUSTHOUR:
+ 437   2            mode = ADJUSTWEEKDAY;
+ 438   2            break;
+ 439   2          
+ 440   2          case ADJUSTMINUTE:
+ 441   2            mode = ADJUSTHOUR;
+ 442   2            break;
+ 443   2          
+ 444   2          case RESETSECOND:
+ 445   2            mode = ADJUSTMINUTE;
+ 446   2            break;
+ 447   2          
+ 448   2          case CHANGELIGHT:
+ 449   2            if(light == ON){
+ 450   3              colorCode = colorCode<=1?7:(colorCode-1);
+ 451   3              ChangeColor();
+ 452   3            }
+ 453   2            break;
+ 454   2          
+ 455   2          default:
+ 456   2            /*do nothing*/
+ 457   2            break;
+ 458   2        }
+ 459   1      }
+ 460          
+ 461          void RightKeyAction(){
+ 462   1        switch(mode){
+ 463   2          case ADJUSTYEAR:
+ 464   2            mode = ADJUSTMONTH;
+ 465   2            break;
+ 466   2          
+ 467   2          case ADJUSTMONTH:
+ 468   2            mode = ADJUSTDATE;
+ 469   2            break;
+ 470   2          
+ 471   2          case ADJUSTDATE:
+ 472   2            mode = ADJUSTWEEKDAY;
+ 473   2            break;
+ 474   2          
+ 475   2          case ADJUSTWEEKDAY:
+ 476   2            mode = ADJUSTHOUR;
+ 477   2            break;
+ 478   2          
+ 479   2          case ADJUSTHOUR:
+ 480   2            mode = ADJUSTMINUTE;
+ 481   2            break;
+ 482   2          
+ 483   2          case ADJUSTMINUTE:
+ 484   2            mode = RESETSECOND;
+ 485   2            break;
+ 486   2          
+ 487   2          case RESETSECOND:
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 9   
+
+ 488   2            mode = ADJUSTYEAR;
+ 489   2            break;
+ 490   2          
+ 491   2          case CHANGELIGHT:
+ 492   2            if(light == ON){
+ 493   3              colorCode = colorCode>=7?1:(colorCode+1);
+ 494   3              ChangeColor();
+ 495   3            }
+ 496   2            break;
+ 497   2          
+ 498   2          default:
+ 499   2            /*do nothing*/
+ 500   2            break;
+ 501   2        }
+ 502   1      }
+ 503          
+ 504          void RunTwicePerSecond(){
+ 505   1          if(fipfop){
+ 506   2            innerClock[SECOND]++;
+ 507   2            if(innerClock[SECOND] >= 60){
+ 508   3              innerClock[SECOND] = 0;
+ 509   3              innerClock[MINUTE]++;
+ 510   3            }
+ 511   2            if(innerClock[MINUTE] >= 60){
+ 512   3              innerClock[MINUTE] = 0;
+ 513   3              innerClock[HOUR]++;
+ 514   3            }
+ 515   2            if(innerClock[HOUR] >= 24){
+ 516   3              innerClock[HOUR] = 0;
+ 517   3              innerClock[DAY]++;
+ 518   3              innerClock[WEEKDAY] = (innerClock[WEEKDAY]+1)%7;
+ 519   3            }
+ 520   2            if(innerClock[DAY] > monthdayAmount[innerClock[MONTH]-1]){
+ 521   3              innerClock[DAY] = 1;
+ 522   3              innerClock[MONTH]++;
+ 523   3            }
+ 524   2            if(innerClock[MONTH] > 12){
+ 525   3              innerClock[MONTH] = 1;
+ 526   3              innerClock[YEAR]++;
+ 527   3            }
+ 528   2            monthdayAmount[1] = 
+ 529   2              ((innerClock[YEAR]%4==0)&&(innerClock[YEAR]%100!=0))||(innerClock[YEAR]%400==0) ? 29 : 28;
+ 530   2          }
+ 531   1          buzz = hourlyChime&&(innerClock[MINUTE]==0)&&(innerClock[SECOND]==0);
+ 532   1          if(mode >= NORMAL && mode <= RESETSECOND){
+ 533   2            RefreshTime();
+ 534   2          }
+ 535   1      }
+ 536          
+ 537          
+ 538          
+ 539          unsigned char PulseReferee(unsigned char decodeCounter){
+ 540   1        if(decodeCounter <= 17)       return 0xFF;
+ 541   1        else if(decodeCounter <= 46)  return 0x00;
+ 542   1        else if(decodeCounter <= 72)  return 0x01;
+ 543   1        else if(decodeCounter <= 95)  return 0x02;
+ 544   1        else if(decodeCounter <= 120) return 0x03;
+ 545   1        else                          return 0xFE;
+ 546   1      }
+ 547          
+ 548          //void SendByte(char byte){
+ 549          //  SBUF = byte;
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 10  
+
+ 550          //  while(TI==0);
+ 551          //  TI=0;
+ 552          //}
+ 553          
+ 554          bit FrameDecoder(){
+ 555   1        int cnt;
+ 556   1        for(cnt = 1; cnt < 20; cnt++){
+ 557   2          if(decodeBuffer[(decodePointer+cnt)%20]==0xFF || decodeBuffer[(decodePointer+cnt)%20]==0xFE){
+ 558   3            return 0;
+ 559   3          }
+ 560   2        }
+ 561   1        
+ 562   1        //sets second
+ 563   1        switch(decodeBuffer[(decodePointer+1)%20]){
+ 564   2          case 0x00:
+ 565   2            currentReceivedTime[SECOND] = 1;
+ 566   2            break;
+ 567   2          case 0x01:
+ 568   2            currentReceivedTime[SECOND] = 21;
+ 569   2            break;
+ 570   2          case 0x02:
+ 571   2            currentReceivedTime[SECOND] = 41;
+ 572   2            break;
+ 573   2          default:
+ 574   2            return 0;
+ 575   2        }
+ 576   1        
+ 577   1        //sets minute
+ 578   1        currentReceivedTime[MINUTE] = decodeBuffer[(decodePointer+5)%20]*16+
+ 579   1                                      decodeBuffer[(decodePointer+6)%20]*4+
+ 580   1                                      decodeBuffer[(decodePointer+7)%20];
+ 581   1        
+ 582   1        //sets hour
+ 583   1        currentReceivedTime[HOUR] =   decodeBuffer[(decodePointer+3)%20]*4+
+ 584   1                                      decodeBuffer[(decodePointer+4)%20]+
+ 585   1                                      (((decodeBuffer[(decodePointer+10)%20]==0x00)||(decodeBuffer[(decodePointer+10)%20]==0x01)
+             -)?0:12);
+ 586   1        
+ 587   1        //sets weekday
+ 588   1        currentReceivedTime[WEEKDAY] =  decodeBuffer[(decodePointer+8)%20]*4+
+ 589   1                                        decodeBuffer[(decodePointer+9)%20];
+ 590   1        
+ 591   1        //set day
+ 592   1        currentReceivedTime[DAY] =  decodeBuffer[(decodePointer+11)%20]*16+
+ 593   1                                    decodeBuffer[(decodePointer+12)%20]*4+
+ 594   1                                    decodeBuffer[(decodePointer+13)%20];
+ 595   1      
+ 596   1        //sets month
+ 597   1        currentReceivedTime[MONTH] =  decodeBuffer[(decodePointer+14)%20]*4+
+ 598   1                                      decodeBuffer[(decodePointer+15)%20];
+ 599   1                                      
+ 600   1        //set year
+ 601   1        currentReceivedTime[YEAR] = decodeBuffer[(decodePointer+16)%20]*16+
+ 602   1                                    decodeBuffer[(decodePointer+17)%20]*4+
+ 603   1                                    decodeBuffer[(decodePointer+18)%20]+
+ 604   1                                    2000;
+ 605   1        
+ 606   1        
+ 607   1        return 1;
+ 608   1      }
+ 609          
+ 610          bit FrameComparator(){
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 11  
+
+ 611   1        int i;
+ 612   1        int monthdayAmountTemp;
+ 613   1        if((lastReceivedTime[SECOND]==41)&&(currentReceivedTime[SECOND]==1)){
+ 614   2          lastReceivedTime[MINUTE]++;
+ 615   2          if(lastReceivedTime[MINUTE] >= 60){
+ 616   3            lastReceivedTime[MINUTE] = 0;
+ 617   3            lastReceivedTime[HOUR]++;
+ 618   3          }
+ 619   2          if(lastReceivedTime[HOUR] >= 24){
+ 620   3            lastReceivedTime[HOUR] = 0;
+ 621   3            lastReceivedTime[DAY]++;
+ 622   3            lastReceivedTime[WEEKDAY] = (lastReceivedTime[WEEKDAY]+1)%7;
+ 623   3          }
+ 624   2          if(lastReceivedTime[MONTH]==2){
+ 625   3            monthdayAmountTemp = 
+ 626   3              ((lastReceivedTime[YEAR]%4==0)&&(lastReceivedTime[YEAR]%100!=0))||(lastReceivedTime[YEAR]%400==0) ? 29
+             - : 28;
+ 627   3          }
+ 628   2          else{
+ 629   3            monthdayAmountTemp = monthdayAmount[lastReceivedTime[MONTH]-1];
+ 630   3          }
+ 631   2          if(lastReceivedTime[DAY] > monthdayAmountTemp){
+ 632   3            lastReceivedTime[DAY] = 1;
+ 633   3            lastReceivedTime[MONTH]++;
+ 634   3          }
+ 635   2          if(lastReceivedTime[MONTH] > 12){
+ 636   3            lastReceivedTime[MONTH] = 1;
+ 637   3            lastReceivedTime[YEAR]++;
+ 638   3          }
+ 639   2          for(i=1; i<7; i++){
+ 640   3            if(lastReceivedTime[i]!=currentReceivedTime[i]){
+ 641   4              return 0;
+ 642   4            }
+ 643   3          }
+ 644   2          return 1;
+ 645   2        }
+ 646   1        else if(
+ 647   1            ((lastReceivedTime[SECOND]==21)&&(currentReceivedTime[SECOND]==41))
+ 648   1          ||((lastReceivedTime[SECOND]==1)&&(currentReceivedTime[SECOND]==21))
+ 649   1        ){
+ 650   2          for(i=1; i<7; i++){
+ 651   3            if(lastReceivedTime[i]!=currentReceivedTime[i]){
+ 652   4              return 0;
+ 653   4            }
+ 654   3          }
+ 655   2          return 1;
+ 656   2        }
+ 657   1        else{
+ 658   2          return 0;
+ 659   2        }
+ 660   1      }
+ 661          bit Decode(){
+ 662   1        
+ 663   1        SBUF = timeMatchCounter;
+ 664   1        while(TI==0);
+ 665   1        TI = 0;
+ 666   1        if(FrameDecoder()){
+ 667   2          //timeMatchCounter is zero means the values in lastReceivedTime is invalid
+ 668   2          if(timeMatchCounter==0){
+ 669   3            addrExchangeTempVar = currentReceivedTime;
+ 670   3            currentReceivedTime = lastReceivedTime;
+ 671   3            lastReceivedTime = addrExchangeTempVar;
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 12  
+
+ 672   3            timeMatchCounter++;
+ 673   3            return 0;
+ 674   3          }
+ 675   2          else{
+ 676   3            if(FrameComparator()){
+ 677   4              if(timeMatchCounter>=4){
+ 678   5                return 1;
+ 679   5              }
+ 680   4              else{
+ 681   5                addrExchangeTempVar = currentReceivedTime;
+ 682   5                currentReceivedTime = lastReceivedTime;
+ 683   5                lastReceivedTime = addrExchangeTempVar;
+ 684   5                timeMatchCounter++;
+ 685   5                return 0;
+ 686   5              }
+ 687   4            }
+ 688   3            else{
+ 689   4              timeMatchCounter = 0;
+ 690   4              return 0;
+ 691   4            }
+ 692   3          }
+ 693   2      //    SendByte((currentReceivedTime[YEAR]/1000)+'0');
+ 694   2      //    SendByte((currentReceivedTime[YEAR]%1000)/100+'0');
+ 695   2      //    SendByte((currentReceivedTime[YEAR]%100)/10+'0');
+ 696   2      //    SendByte((currentReceivedTime[YEAR]%10)+'0');
+ 697   2      //    
+ 698   2      //    SendByte((currentReceivedTime[MONTH]/10)+'0');
+ 699   2      //    SendByte((currentReceivedTime[MONTH]%10)+'0');
+ 700   2      //    
+ 701   2      //    SendByte((currentReceivedTime[DAY]/10)+'0');
+ 702   2      //    SendByte((currentReceivedTime[DAY]%10)+'0');
+ 703   2      //    
+ 704   2      //    SendByte(currentReceivedTime[WEEKDAY]+'0');
+ 705   2      //    
+ 706   2      //    SendByte((currentReceivedTime[HOUR]/10)+'0');
+ 707   2      //    SendByte((currentReceivedTime[HOUR]%10)+'0');
+ 708   2      //    
+ 709   2      //    SendByte((currentReceivedTime[MINUTE]/10)+'0');
+ 710   2      //    SendByte((currentReceivedTime[MINUTE]%10)+'0');
+ 711   2      //    
+ 712   2      //    SendByte((currentReceivedTime[SECOND]/10)+'0');
+ 713   2      //    SendByte((currentReceivedTime[SECOND]%10)+'0');
+ 714   2        }
+ 715   1        else{
+ 716   2          timeMatchCounter = 0;
+ 717   2          return 0;
+ 718   2        }
+ 719   1      }
+ 720          
+ 721          void Initialize(){
+ 722   1        ChangeColor();
+ 723   1        buzz = 0;
+ 724   1        antennaIsOff = 0;
+ 725   1        
+ 726   1        LCD1602_Init();
+ 727   1        
+ 728   1        SCON=0x50;
+ 729   1        PCON=0x00;
+ 730   1        TMOD=0x20;
+ 731   1        TCON|=0x05;
+ 732   1        TL1=0xFD;
+ 733   1        TH1=0xFD;
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 13  
+
+ 734   1        TR1=1;
+ 735   1        
+ 736   1        IP = 0x01;
+ 737   1        
+ 738   1        IT1 = 1;
+ 739   1        EX1 = 1;
+ 740   1        
+ 741   1        IT0 = 1;
+ 742   1        EX0 = 1;
+ 743   1        
+ 744   1        EA = 1;
+ 745   1      }
+ 746          
+ 747          void main(){
+ 748   1        Initialize();
+ 749   1        while(1){
+ 750   2          if(middle == 0){
+ 751   3            
+ 752   3            MiddleKeyAction();
+ 753   3            
+ 754   3            delay(DELAYXMS);
+ 755   3            while(middle == 0)
+ 756   3            delay(DELAYXMS);
+ 757   3          }
+ 758   2          else if(up == 0){
+ 759   3            
+ 760   3            UpKeyAction();
+ 761   3            
+ 762   3            delay(DELAYXMS);
+ 763   3            while(up == 0)
+ 764   3            delay(DELAYXMS);
+ 765   3          }
+ 766   2          else if(down == 0){
+ 767   3            
+ 768   3            DownKeyAction();
+ 769   3            
+ 770   3            delay(DELAYXMS);
+ 771   3            while(down == 0)
+ 772   3            delay(DELAYXMS);
+ 773   3          }
+ 774   2          else if(left == 0){
+ 775   3            
+ 776   3            LeftKeyAction();
+ 777   3            
+ 778   3            delay(DELAYXMS);
+ 779   3            while(left == 0)
+ 780   3            delay(DELAYXMS);
+ 781   3          }
+ 782   2          else if(right == 0){
+ 783   3            
+ 784   3            RightKeyAction();
+ 785   3            
+ 786   3            delay(DELAYXMS);
+ 787   3            while(right == 0)
+ 788   3            delay(DELAYXMS);
+ 789   3          }
+ 790   2          else{
+ 791   3            /*do nothing*/
+ 792   3          }
+ 793   2        
+ 794   2          if(refreshTimeFlag){
+ 795   3            RunTwicePerSecond();
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 14  
+
+ 796   3            refreshTimeFlag = 0;
+ 797   3          }
+ 798   2        };
+ 799   1      }
+ 800          
+ 801          void EX0_IRQ() interrupt 0{
+ 802   1        if(syncCounter >= 255 && syncCounter <= 257){
+ 803   2          freqMatchCounter++;
+ 804   2        }
+ 805   1        else{
+ 806   2          freqMatchCounter = 0;
+ 807   2        }
+ 808   1        if(freqMatchCounter >= 3){
+ 809   2          
+ 810   2          //synchronize the inner clock with the radio signal
+ 811   2          mainCounter = 0;
+ 812   2          fipfop = 1;
+ 813   2          
+ 814   2          //shut the synchronization mechanism down
+ 815   2          freqMatchCounter = 0;
+ 816   2          EX0 = 0;
+ 817   2          
+ 818   2          //frequency synchronized
+ 819   2          phaseSynchronized = 1;
+ 820   2        }
+ 821   1        
+ 822   1        //reset the counter
+ 823   1        syncCounter = 0;
+ 824   1      }
+ 825          
+ 826          void EX1_IRQ() interrupt 2{
+ 827   1        mainCounter++;
+ 828   1      //  test = fipfop;
+ 829   1        if(phaseSynchronized){
+ 830   2          if(!timeSynchronized && signal==0 && mainCounter<=128){decodeCounter++;}
+ 831   2        }
+ 832   1        else{
+ 833   2          syncCounter++;
+ 834   2        }
+ 835   1        
+ 836   1        if(mainCounter >= 128){
+ 837   2          mainCounter = 0;
+ 838   2          fipfop = !fipfop;
+ 839   2          refreshTimeFlag = 1;
+ 840   2          
+ 841   2          //Time is not synchronized
+ 842   2          //Frequency is synchronized
+ 843   2          //A new second has just started
+ 844   2          if(!timeSynchronized && phaseSynchronized && fipfop){
+ 845   3            
+ 846   3            decodeBuffer[decodePointer] = PulseReferee(decodeCounter);
+ 847   3            
+ 848   3            //0xFF is considerred as the end of the last frame
+ 849   3            if((decodeBuffer[decodePointer]==0xFF)&&Decode()&&UpdateTime()){        
+ 850   4              antennaIsOff = 1;
+ 851   4              timeSynchronized = 1;
+ 852   4              decodePointer = 0;
+ 853   4              timeMatchCounter = 0;
+ 854   4            }
+ 855   3            else{
+ 856   4              decodePointer = (decodePointer+1)%20;
+ 857   4            }
+C51 COMPILER V9.60.0.0   MAIN                                                              11/27/2021 23:17:06 PAGE 15  
+
+ 858   3      //      SBUF = (decodeCounter/100)+'0';
+ 859   3      //      while(TI==0);
+ 860   3      //      TI=0;
+ 861   3      //      
+ 862   3      //      SBUF = ((decodeCounter%100)/10)+'0';
+ 863   3      //      while(TI==0);
+ 864   3      //      TI=0;
+ 865   3      //      
+ 866   3      //      SBUF = (decodeCounter%10)+'0';
+ 867   3      //      while(TI==0);
+ 868   3      //      TI=0;
+ 869   3      //      
+ 870   3      //      SBUF = ' ';
+ 871   3      //      while(TI==0);
+ 872   3      //      TI=0;
+ 873   3            
+ 874   3            decodeCounter = 0;
+ 875   3          }
+ 876   2        }
+ 877   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   5535    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    243       6
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =     70    ----
+   BIT SIZE         =      5    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

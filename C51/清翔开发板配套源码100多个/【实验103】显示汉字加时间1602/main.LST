@@ -1,0 +1,320 @@
+C51 COMPILER V8.08   MAIN                                                                  02/19/2016 20:16:10 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /**********************************************************************
+   2          /*********************************************************************************
+   3          * 【编写时间】： 2014年3月5日
+   4          * 【作    者】： 清翔电子:03
+   5          * 【版    本】： 1.0
+   6          * 【网    站】： http://www.qxmcu.com/ 
+   7          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   8          * 【实验平台】： QX-MCS51 单片机开发板
+   9          * 【外部晶振】： 11.0592mhz     
+  10          * 【主控芯片】： STC89C52
+  11          * 【编译环境】： Keil μVisio3  
+  12          * 【程序功能】：                                                                                    
+  13          * 【使用说明】：  液晶1脚接1602黑色排母的1脚  如果是无背光的液晶只有14个脚 排母右边空2个位   
+  14                           请把液晶对比度电位器顺时针调制10点钟方向，请勿多调超出极限位置会损坏电位器！
+  15          *  说明：免费开源，不提供源代码分析.
+  16          **********************************************************************************/
+  17          /*      //-------------------------程序功能-------------------------//
+  18                  利用定时器0走时，1602显示，按键可调时间。       
+  19          
+  20                  //---------------------------备注---------------------------//
+  21          
+  22                  //-------------------------使用说明-------------------------//
+  23                   硬件平台:QX-X3；
+  24                   KEY13选择调节时分秒，KEY14加，KEY15减。
+  25                   硬件平台:QX-MCS；
+  26                   S2选择调节时分秒，S3加，S4减，S5确认。
+  27          **********************************************************************/
+  28          #include <reg52.h>
+  29          #define uchar unsigned char
+  30          #define uint  unsigned int 
+  31          sbit lcdrs  = P3^5;     //液晶引脚定义
+  32          sbit led_cs = P3^6;
+  33          sbit lcden  = P3^4;
+  34          sbit dx = P2^7;//数码管引脚定义
+  35          sbit wx = P2^6;
+  36          sbit key1 = P3^0;
+  37          sbit key2 = P3^1;
+  38          sbit key3 = P3^2;
+  39          sbit keyE = P3^3;
+  40          uchar num,key1num,count,hour,min,sec;
+  41          uchar code cg_1602[]={ 0x08,0x0f,0x12,0x0f,0x0a,0x1f,0x02,0x02,
+  42          0x0f,0x09,0x0f,0x09,0x0f,0x09,0x11,0x00,
+  43          0x0f,0x09,0x09,0x0f,0x09,0x09,0x0f,0x00};//"年月日"
+  44          /*延时函数*/
+  45          void delay(uint xms)
+  46          {
+  47   1              uint i,j; 
+  48   1              for(i=xms;i>0;i--)
+  49   1              for(j=114;j>0;j--);
+  50   1      }
+  51          /*1602液晶*/
+  52          void write_com(uchar com)//写命令
+  53          {
+  54   1              lcdrs=0;
+  55   1              lcden=0;
+C51 COMPILER V8.08   MAIN                                                                  02/19/2016 20:16:10 PAGE 2   
+
+  56   1              P0=com;
+  57   1              delay(5);
+  58   1              lcden=1;
+  59   1              delay(5);
+  60   1              lcden=0;
+  61   1      }
+  62          void write_data(uchar date)//写数据
+  63          {
+  64   1              lcdrs=1;
+  65   1              lcden=0;
+  66   1              P0=date;
+  67   1              delay(5);
+  68   1              lcden=1;
+  69   1              delay(5);
+  70   1              lcden=0;
+  71   1      }
+  72          void write_by_xy(uchar x,uchar y)//坐标定位
+  73          {
+  74   1              uchar address;
+  75   1              if(y==0) 
+  76   1              address=0x80+x;//y=0,写第一行
+  77   1              else 
+  78   1              address=0xc0+x;//y=1,写第二行
+  79   1              write_com(address); 
+  80   1      }
+  81          /*void write_char(uchar x,uchar y,uchar date)//坐标定位显示
+  82          {
+  83                  write_by_xy(x,y);//先定位 
+  84                  write_data(date);//后写数
+  85          }*/
+  86          void write_string(uchar x,uchar y,uchar *s)//写字符串
+  87          {
+  88   1              write_by_xy(x,y);//设定显示位置 
+  89   1              while(*s)//write character
+  90   1              {
+  91   2              P0=*s;
+  92   2              write_data(*s); 
+  93   2              s++;
+  94   2              }
+  95   1      }
+  96          void write_sfm(uchar add,uchar date)//写时分秒函数
+  97          {
+  98   1              uchar hour,ge;
+  99   1              hour=date/10;//分解一个2位数的十位和个位
+ 100   1              ge=date%10;
+ 101   1              write_com(0x80+0x40+add);//设置显示位置
+ 102   1              write_data(0x30+hour);//送去液晶显示十位
+ 103   1              write_data(0x30+ge); //送去液晶显示个位
+ 104   1      }
+ 105          void write_cg()//写入固定汉字和符号
+ 106          {
+ 107   1              write_com(0x40); //设定CGRAM地址 
+ 108   1              for(num=0;num<24;num++) //将自定义字型码写入CGRAM中 
+ 109   1              { 
+ 110   2                      write_data(cg_1602[num]); 
+ 111   2              }
+ 112   1              write_com(0x84);//年 
+ 113   1              { 
+ 114   2                      write_data(0); 
+ 115   2              } 
+ 116   1              write_com(0x87);//月 
+ 117   1              { 
+C51 COMPILER V8.08   MAIN                                                                  02/19/2016 20:16:10 PAGE 3   
+
+ 118   2                      write_data(1); 
+ 119   2              }
+ 120   1              write_com(0x8a);//日 
+ 121   1              { 
+ 122   2                      write_data(2); 
+ 123   2              }
+ 124   1              write_string(2,1,":");
+ 125   1              write_string(5,1,":");
+ 126   1              write_string(9,1,"QX-MCU");
+ 127   1      }
+ 128          void init_1602()//初始化
+ 129          {
+ 130   1              dx=0;wx=0;led_cs=0;
+ 131   1              hour=22;min=33;sec=55;key1num=0;count=0;
+ 132   1              write_com(0x38);
+ 133   1              write_com(0x0c);
+ 134   1              write_com(0x06);
+ 135   1              write_com(0x01);
+ 136   1              write_string(0,0,"2014");
+ 137   1              write_string(5,0,"07");
+ 138   1              write_string(8,0,"12");
+ 139   1              write_sfm(0,hour);
+ 140   1              write_sfm(3,min);
+ 141   1              write_sfm(6,sec);
+ 142   1              write_cg();
+ 143   1              TMOD=0x01;//设置定时器0工作模式1
+ 144   1              TH0=(65536-50000)/256;//定时器装初值
+ 145   1              TL0=(65536-50000)%256;
+ 146   1              EA=1; //开总中断
+ 147   1              ET0=1; //开定时器0中断
+ 148   1              TR0=1; //启动定时器0
+ 149   1      }
+ 150          /*键盘扫描函数*/
+ 151          void keyscan()//按键扫描函数
+ 152          {
+ 153   1              keyE =0;
+ 154   1              if(key1==0) 
+ 155   1              {
+ 156   2                      delay(5);
+ 157   2                      if(key1==0)//确认功能键被按下
+ 158   2                      {       
+ 159   3                              key1num++;//功能键按下次数记录
+ 160   3                              while(!key1);//释放确认
+ 161   3                              if(key1num==1)//第一次被按下时
+ 162   3                              {
+ 163   4                                      TR0=0; //关闭定时器
+ 164   4                                      write_com(0x80+0x40+7);//光标定位到秒位置
+ 165   4                                      write_com(0x0f); //光标开始闪烁
+ 166   4                              }
+ 167   3                              if(key1num==2)//第二次按下光标闪烁定位到分钟位置
+ 168   3                              {
+ 169   4                                      write_com(0x80+0x40+4);
+ 170   4                              }
+ 171   3                              if(key1num==3)//第三次按下光标闪烁定位到小时位置
+ 172   3                              {
+ 173   4                                      write_com(0x80+0x40+1);
+ 174   4                              }
+ 175   3                              if(key1num==4)//第四次按下
+ 176   3                              {
+ 177   4                                      key1num=0;//记录按键数清零
+ 178   4                                      write_com(0x0c);//取消光标闪烁
+ 179   4                                      TR0=1; //启动定时器使时钟开始走
+C51 COMPILER V8.08   MAIN                                                                  02/19/2016 20:16:10 PAGE 4   
+
+ 180   4                              } 
+ 181   3                      }
+ 182   2              }
+ 183   1              if(key1num!=0)//只有功能键被按下后，增加和减小键才有效
+ 184   1              {
+ 185   2                      if(key2==0)
+ 186   2                      {
+ 187   3                              delay(5);
+ 188   3                              if(key2==0)//增加键确认被按下
+ 189   3                              {
+ 190   4                                      while(!key2);//按键释放
+ 191   4                                      if(key1num==1)//若功能键第一次按下
+ 192   4                                      {
+ 193   5                                              sec++; //则调整秒加1
+ 194   5                                              if(sec==60)//若满60后将清零
+ 195   5                                              sec=0;
+ 196   5                                              write_sfm(6,sec);//每调节一次送液晶显示一下
+ 197   5                                              write_com(0x80+0x40+7);//显示位置重新回到调节处
+ 198   5                                      }
+ 199   4                                      if(key1num==2)//若功能键第二次按下
+ 200   4                                      {
+ 201   5                                              min++;//则调整分钟加1
+ 202   5                                              if(min==60)//若满60后将清零
+ 203   5                                              min=0;
+ 204   5                                              write_sfm(3,min);//每调节一次送液晶显示一下
+ 205   5                                              write_com(0x80+0x40+4);//显示位置重新回到调节处
+ 206   5                                      }
+ 207   4                                      if(key1num==3)//若功能键第三次按下
+ 208   4                                      {
+ 209   5                                              hour++;//则调整小时加1
+ 210   5                                              if(hour==24)//若满24后将清零
+ 211   5                                              hour=0;
+ 212   5                                              write_sfm(0,hour);;//每调节一次送液晶显示一下
+ 213   5                                              write_com(0x80+0x40+1);//显示位置重新回到调节处
+ 214   5                                      }
+ 215   4                              }
+ 216   3                      }
+ 217   2                      if(key3==0)
+ 218   2                      {
+ 219   3                              delay(5);
+ 220   3                              if(key3==0)//确认减小键被按下
+ 221   3                              {
+ 222   4                                      while(!key3);//按键释放
+ 223   4                                      if(key1num==1)//若功能键第一次按下
+ 224   4                                      {
+ 225   5                                              sec--;//则调整秒减1
+ 226   5                                              if(sec==-1)//若减到负数则将其重新设置为59
+ 227   5                                                      sec=59;
+ 228   5                                              write_sfm(6,sec);//每调节一次送液晶显示一下
+ 229   5                                              write_com(0x80+0x40+7);//显示位置重新回到调节处
+ 230   5                                      }
+ 231   4                                      if(key1num==2)//若功能键第二次按下
+ 232   4                                      {
+ 233   5                                              min--;//则调整分钟减1
+ 234   5                                              if(min==-1)//若减到负数则将其重新设置为59
+ 235   5                                                      min=59;
+ 236   5                                              write_sfm(3,min);//每调节一次送液晶显示一下
+ 237   5                                      write_com(0x80+0x40+4);//显示位置重新回到调节处
+ 238   5                                      }
+ 239   4                                      if(key1num==3)//若功能键第二次按下
+ 240   4                                      {
+ 241   5                                              hour--;//则调整小时减1
+C51 COMPILER V8.08   MAIN                                                                  02/19/2016 20:16:10 PAGE 5   
+
+ 242   5                                              if(hour==-1)//若减到负数则将其重新设置为23
+ 243   5                                                      hour=23;
+ 244   5                                              write_sfm(0,hour);//每调节一次送液晶显示一下
+ 245   5                                              write_com(0x80+0x40+1);//显示位置重新回到调节处
+ 246   5                                      }
+ 247   4                              }
+ 248   3                      }
+ 249   2              }
+ 250   1      }
+ 251          /*主函数*/
+ 252          void main()
+ 253          {
+ 254   1              dx=0;wx=0;led_cs=0;
+ 255   1              init_1602();
+ 256   1              while(1)
+ 257   1              {
+ 258   2                      keyscan();
+ 259   2              } 
+ 260   1      }
+ 261          /*中断函数*/
+ 262          void timer0() interrupt 1//定时器0中断服务程序
+ 263          {
+ 264   1              TH0=(65536-50000)/256;//再次装定时器初值
+ 265   1              TL0=(65536-50000)%256;
+ 266   1              count++; //中断次数累加
+ 267   1              if(count==20) //20次50毫秒为1秒
+ 268   1              {
+ 269   2                      count=0;
+ 270   2                      sec++;
+ 271   2                      if(sec==60)//秒加到60则进位分钟
+ 272   2                      {
+ 273   3                              sec=0;//同时秒数清零
+ 274   3                              min++;
+ 275   3                              if(min==60)//分钟加到60则进位小时
+ 276   3                              {
+ 277   4                                      min=0;//同时分钟数清零
+ 278   4                                      hour++;
+ 279   4                                      if(hour==24)//小时加到24则小时清零
+ 280   4                                      {
+ 281   5                                              hour=0;
+ 282   5                                      }
+ 283   4                                      write_sfm(0,hour);//小时若变化则重新写入
+ 284   4                              }
+ 285   3                              write_sfm(3,min);//分钟若变化则重新写入
+ 286   3                      }
+ 287   2                      write_sfm(6,sec);//秒若变化则重新写入 
+ 288   2              } 
+ 289   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    723    ----
+   CONSTANT SIZE    =     44    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      6       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,7 @@
+"main.obj",
+"delay.obj",
+"LCD1602.obj",
+"IIC.obj",
+"PCF8591.obj" 
+TO "AD4CH_Display" 
+RAMSIZE(256) 

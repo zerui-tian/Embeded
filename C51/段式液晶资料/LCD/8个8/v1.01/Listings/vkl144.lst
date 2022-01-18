@@ -1,0 +1,645 @@
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE VKL144
+OBJECT MODULE PLACED IN .\Objects\vkl144.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE APP\vkl144.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\USER;.\APP) DEBUG OBJECTE
+                    -XTEND PRINT(.\Listings\vkl144.lst) OBJECT(.\Objects\vkl144.obj)
+
+line level    source
+
+   1          #include "VKL144.h"
+   2          #include "intrins.h"
+   3          
+   4          #define RESET                           0
+   5          #define SET                                     1
+   6          
+   7          #define VKL144_BASE100MS        100             //实现100mS延时，根据单片机修改此常数
+   8          #define VKL144_CLK                      1               //WR信号线频率 ,由VKL144_Delay_us实现， =1->400kHz =10->100kHz =100->11.11kHz
+   9          
+  10          /* Private macro -------------------------------------------------------------*/
+  11          /* Private variables ---------------------------------------------------------*/
+  12          
+  13          const unsigned char VKL144_segtab[VKL144_SEGNUM]=
+  14          {
+  15                  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+  16          };
+  17          unsigned char VKL144_addrbit=6;                 //驱动ic的ram地址线数A5-A0
+  18          unsigned char VKL144_segi,VKL144_comi;
+  19          unsigned char VKL144_dispram[VKL144_RAMBUFNUM];
+  20          //显示RAM buffer使用8位，bit0,4->com0,bit1,5->com1,bit2,6->com2,bit37->com3
+  21          //高4位偶数seg，低4位奇数seg
+  22          //如果是从奇数seg开始VKL144_dispram[0]的高4位不用
+  23          
+  24          
+  25          
+  26          /*************************************************************
+  27          *函数名称：VKL144_Delay_us
+  28          *函数功能：Inserts a delay time
+  29          *输入参数：ucDat-> 延时时间
+  30          *输出参数：None
+  31          *备    注：此程序需要自行校准   实现 2us 延时
+  32          **************************************************************/
+  33          void VKL144_Delay_us(unsigned int ucDat)
+  34          {
+  35   1              while(ucDat--) 
+  36   1              {//nop指令根据单片机做相应的修改
+  37   2                      _nop_();_nop_();_nop_();_nop_();_nop_();
+  38   2              }
+  39   1      }
+  40          /*************************************************************
+  41          *函数名称：VKL144_Delay_ms
+  42          *函数功能：Inserts a delay time
+  43          *输入参数：ucDat-> 延时时间
+  44          *输出参数：None
+  45          *备    注：此程序需要自行校准 实现 1ms 延时
+  46          **************************************************************/
+  47          void VKL144_Delay_ms(unsigned int ucDat)
+  48          {
+  49   1              unsigned int a,b;
+  50   1              
+  51   1              for(a=ucDat; a>0; a--)
+  52   1              {
+  53   2                      for(b=122; b>0; b--);
+  54   2              }
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 2   
+
+  55   1      }
+  56          /*************************************************************
+  57          *函数名称：I2CStart
+  58          *函数功能：I2C开始信号
+  59          *输入参数：None
+  60          *输出参数：None
+  61          *备    注：时钟线高时，数据线由高到低的跳变，表示I2C开始信号
+  62          **************************************************************/
+  63          void VKL144_I2CStart( void )
+  64          {
+  65   1              VKL144_SDA_H();
+  66   1              VKL144_SCL_H();
+  67   1              VKL144_Delay_us(VKL144_CLK/2);
+  68   1              VKL144_SDA_L();
+  69   1              VKL144_Delay_us(VKL144_CLK/2);
+  70   1              VKL144_SCL_L();
+  71   1      }
+  72          /*************************************************************
+  73          *函数名称：I2CStop
+  74          *函数功能：I2C停止信号
+  75          *输入参数：None
+  76          *输出参数：None
+  77          *备    注：时钟线高时，数据线由低到高的跳变，表示I2C停止信号
+  78          **************************************************************/
+  79          void VKL144_I2CStop( void )
+  80          {
+  81   1              VKL144_SDA_L();
+  82   1              VKL144_Delay_us(VKL144_CLK/2);
+  83   1              VKL144_SCL_H();
+  84   1              VKL144_Delay_us(VKL144_CLK/2);
+  85   1              VKL144_SDA_H();
+  86   1      }
+  87          /*************************************************************
+  88          *函数名称：I2CSlaveAck
+  89          *函数功能：I2C从机设备应答查询
+  90          *输入参数：None
+  91          *输出参数：None
+  92          *备    注：
+  93          **************************************************************/
+  94          unsigned char VKL144_I2CSlaveAck( void )
+  95          {
+  96   1              unsigned int TimeOut;
+  97   1              unsigned char RetValue;
+  98   1              
+  99   1              VKL144_SET_SDA_IN();
+ 100   1              VKL144_Delay_us(VKL144_CLK/2);
+ 101   1              VKL144_SCL_H();
+ 102   1              
+ 103   1              TimeOut = 10000;
+ 104   1              while( TimeOut-- > 0 )
+ 105   1              {
+ 106   2                      if( VKL144_GET_SDA() )  //SDA为高，未收到应答
+ 107   2                      {
+ 108   3                              RetValue = RESET;
+ 109   3                      }
+ 110   2                      else                                    //SDA为低，收到应答
+ 111   2                      {
+ 112   3                              RetValue = SET;
+ 113   3                              break;
+ 114   3                      }
+ 115   2              }
+ 116   1              VKL144_SCL_L();
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 3   
+
+ 117   1              VKL144_SET_SDA_OUT();
+ 118   1              
+ 119   1              return RetValue;
+ 120   1      }
+ 121          /*************************************************************
+ 122          *函数名称：I2CWriteByte
+ 123          *函数功能：I2C写一字节数据
+ 124          *输入参数：None
+ 125          *输出参数：None
+ 126          *备    注：
+ 127          **************************************************************/
+ 128          void VKL144_I2CWriteByte( unsigned char byte )
+ 129          {
+ 130   1              unsigned char i=8;
+ 131   1              while (i--)
+ 132   1              {
+ 133   2                      if(byte&0x80)
+ 134   2                              VKL144_SDA_H();
+ 135   2                      else
+ 136   2                              VKL144_SDA_L();
+ 137   2                      byte<<=1; 
+ 138   2                      VKL144_Delay_us(VKL144_CLK);
+ 139   2                      VKL144_SCL_H();     
+ 140   2                      VKL144_Delay_us(VKL144_CLK); 
+ 141   2                      VKL144_SCL_L();
+ 142   2              }
+ 143   1      }
+ 144          /*************************************************************
+ 145          *函数名称：FunSet
+ 146          *函数功能：功能设置
+ 147          *输入参数：command-输入指令 
+ 148          *输出参数：None
+ 149          *备    注：
+ 150          **************************************************************/
+ 151          void VKL144_FunSet(unsigned char command)
+ 152          { 
+ 153   1              unsigned char i;
+ 154   1              
+ 155   1              i=1;
+ 156   1              while(i--)
+ 157   1              { 
+ 158   2                      VKL144_Delay_ms(VKL144_BASE100MS/10);
+ 159   2                      VKL144_I2CStop(); 
+ 160   2                      VKL144_Delay_ms(VKL144_BASE100MS/20);
+ 161   2                      VKL144_I2CStart(); 
+ 162   2                      VKL144_I2CWriteByte(VKL144_ADDR); 
+ 163   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 164   2                      {
+ 165   3                              continue;
+ 166   3                      }
+ 167   2                      VKL144_I2CWriteByte(command); 
+ 168   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 169   2                      {
+ 170   3                              continue;
+ 171   3                      }
+ 172   2                      VKL144_I2CStop(); 
+ 173   2              }
+ 174   1              VKL144_I2CStop();
+ 175   1      }
+ 176          /**
+ 177            * @brief  Write 1 data to VKL144 
+ 178            * @param  Addr->写入ram的地址 
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 4   
+
+ 179            * @param  Databuf->写入ram的数据
+ 180            * @retval None
+ 181            */
+ 182          void Write1DataVKL144(unsigned char Addr,unsigned char Dat)
+ 183          {
+ 184   1              unsigned char i;
+ 185   1              
+ 186   1              i=1;
+ 187   1              while(i--)
+ 188   1              { 
+ 189   2                      VKL144_Delay_ms(VKL144_BASE100MS/10);
+ 190   2                      VKL144_I2CStop(); 
+ 191   2                      VKL144_Delay_ms(VKL144_BASE100MS/20);
+ 192   2                      VKL144_I2CStart(); 
+ 193   2                      VKL144_I2CWriteByte(VKL144_ADDR);
+ 194   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 195   2                      {
+ 196   3                              continue;
+ 197   3                      }
+ 198   2                      if(Addr>0x1f)
+ 199   2                              VKL144_I2CWriteByte(VKL144_ICSET|BIT2_ADDR5); 
+ 200   2                      else
+ 201   2                              VKL144_I2CWriteByte(VKL144_ICSET);
+ 202   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 203   2                      {
+ 204   3                              continue;
+ 205   3                      }
+ 206   2                      VKL144_I2CWriteByte(Addr&0x1f);
+ 207   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 208   2                      {
+ 209   3                              continue;
+ 210   3                      }
+ 211   2                      
+ 212   2                      VKL144_I2CWriteByte(Dat);
+ 213   2                      if( SET == VKL144_I2CSlaveAck() )
+ 214   2                      {
+ 215   3                              continue;
+ 216   3                      }
+ 217   2              }
+ 218   1              VKL144_I2CStop();
+ 219   1      }
+ 220          /**
+ 221            * @brief  Write n data to VKL144 
+ 222            * @param  Addr->写入ram的起始地址 
+ 223            * @param  Databuf->写入ram的数据buffer
+ 224            * @param  Cnt->写入ram的数据个数
+ 225            * @retval errorflag
+ 226            */
+ 227          void WritenDataVKL144(unsigned char Addr,unsigned char *Databuf,unsigned char Cnt)
+ 228          {
+ 229   1              unsigned char i,n;
+ 230   1              
+ 231   1              i=1;
+ 232   1              while(i--)
+ 233   1              { 
+ 234   2                      VKL144_Delay_ms(VKL144_BASE100MS/10);
+ 235   2                      VKL144_I2CStop(); 
+ 236   2                      VKL144_Delay_ms(VKL144_BASE100MS/20);
+ 237   2                      VKL144_I2CStart(); 
+ 238   2                      VKL144_I2CWriteByte(VKL144_ADDR); 
+ 239   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 240   2                      {
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 5   
+
+ 241   3                              continue;
+ 242   3                      }
+ 243   2                      if(Addr>0x1f)
+ 244   2                              VKL144_I2CWriteByte(VKL144_ICSET|BIT2_ADDR5); 
+ 245   2                      else
+ 246   2                              VKL144_I2CWriteByte(VKL144_ICSET); 
+ 247   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 248   2                      {
+ 249   3                              continue;
+ 250   3                      }
+ 251   2                      VKL144_I2CWriteByte(Addr&0x1f); 
+ 252   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 253   2                      {
+ 254   3                              continue;
+ 255   3                      }
+ 256   2                      
+ 257   2                      for(n=0;n<Cnt;n++)
+ 258   2                      { 
+ 259   3                              VKL144_I2CWriteByte(*Databuf++);
+ 260   3                              if( SET == VKL144_I2CSlaveAck() )
+ 261   3                              {
+ 262   4                                      continue;
+ 263   4                              }
+ 264   3                              else
+ 265   3                              {
+ 266   4                                      break;
+ 267   4                              }
+ 268   3                      }
+ 269   2               }
+ 270   1               VKL144_I2CStop();
+ 271   1      }
+ 272          /**
+ 273            * @brief  lcd全显或全灭
+ 274            * @param  state=1->lcd全亮 
+ 275            * @param  state=0->lcd全灭
+ 276            * @retval None
+ 277            */
+ 278          void VKL144_DisAll(unsigned char state)
+ 279          {
+ 280   1              unsigned char segi;
+ 281   1              unsigned char dispram[18];
+ 282   1              
+ 283   1              for(segi=0;segi<18/2;segi++)
+ 284   1              {
+ 285   2                      dispram[segi]=0;
+ 286   2              }
+ 287   1              for(segi=0;segi<VKL144_RAMBUFNUM;segi++)
+ 288   1              {
+ 289   2                      if(state==1)
+ 290   2                      {
+ 291   3                                      VKL144_dispram[segi]=0xff;
+ 292   3                      }
+ 293   2                      else
+ 294   2                      {
+ 295   3                              VKL144_dispram[segi]=0x00;
+ 296   3                      }
+ 297   2                      dispram[VKL144_segtab[0]/2+segi]=VKL144_dispram[segi];
+ 298   2              }
+ 299   1              WritenDataVKL144(0,dispram,18);
+ 300   1      }
+ 301          /**
+ 302            * @brief  lcd显示单个点（1comx1seg）
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 6   
+
+ 303            * @param  Seg->点对应的seg 
+ 304            * @param  Com->点对应的com
+ 305            * @retval None
+ 306            */
+ 307          void VKL144_DisSegOn(unsigned char Seg,unsigned char Com)
+ 308          {
+ 309   1              if(Seg%2==0)
+ 310   1              {
+ 311   2                      VKL144_dispram[(Seg-VKL144_segtab[0])/2]|=(1<<(Com+4));
+ 312   2                      Write1DataVKL144(Seg,VKL144_dispram[(Seg-VKL144_segtab[0])/2]);
+ 313   2              }
+ 314   1              else
+ 315   1              {
+ 316   2                      VKL144_dispram[(Seg-VKL144_segtab[0])/2]|=(1<<Com);             
+ 317   2                      Write1DataVKL144(Seg-1,VKL144_dispram[(Seg-VKL144_segtab[0])/2]);
+ 318   2              }
+ 319   1      }
+ 320          /**
+ 321            * @brief  lcd关闭单个点（1comx1seg）
+ 322            * @param  None 
+ 323            * @retval None
+ 324            */
+ 325          void VKL144_DisSegOff(unsigned char Seg,unsigned char Com)
+ 326          {
+ 327   1              if(Seg%2==0)
+ 328   1              {
+ 329   2                      VKL144_dispram[(Seg-VKL144_segtab[0])/2]&=~(1<<(Com+4));
+ 330   2                      Write1DataVKL144(Seg,VKL144_dispram[(Seg-VKL144_segtab[0])/2]);
+ 331   2              }
+ 332   1              else
+ 333   1              {
+ 334   2                      VKL144_dispram[(Seg-VKL144_segtab[0])/2]&=~(1<<Com);            
+ 335   2                      Write1DataVKL144(Seg-1,VKL144_dispram[(Seg-VKL144_segtab[0])/2]);
+ 336   2              }
+ 337   1      }
+ 338          
+ 339          /**
+ 340            * @brief  VKL144进入掉电低功耗模式
+ 341            * @param  None 
+ 342            * @retval None
+ 343            */
+ 344          void VKL144_Halt(void)
+ 345          {               
+ 346   1              unsigned char i;
+ 347   1              
+ 348   1              i=1;
+ 349   1              while(i--)
+ 350   1              {
+ 351   2                      VKL144_I2CStart();
+ 352   2                      VKL144_I2CWriteByte(VKL144_ADDR); 
+ 353   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 354   2                      {
+ 355   3                              continue;
+ 356   3                      }
+ 357   2                      
+ 358   2                      #if     BIAS_1_2
+                              VKL144_I2CWriteByte(VKL144_MODESET_1_2_OFF);    //关闭显示 1/2bias
+                              #endif
+ 361   2                      
+ 362   2                      #if     BIAS_1_3
+ 363   2                      VKL144_I2CWriteByte(VKL144_MODESET_1_3_OFF);    //关闭显示 1/3bias
+ 364   2                      #endif
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 7   
+
+ 365   2                      
+ 366   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 367   2                      {
+ 368   3                              continue;
+ 369   3                      }
+ 370   2              }
+ 371   1              VKL144_I2CStop();
+ 372   1      }
+ 373          /**
+ 374            * @brief  VKL144 Init 退出低功耗调用此含税
+ 375            * @param  None 
+ 376            * @retval None
+ 377            */
+ 378          void VKL144_Init(void)
+ 379          {       
+ 380   1              unsigned char i,n;
+ 381   1              unsigned char errorflag = 1;//错误标志位，1为错误，0为正确
+ 382   1              
+ 383   1              i=1;
+ 384   1              while(i--)
+ 385   1              {
+ 386   2                      VKL144_Delay_ms(VKL144_BASE100MS/10);
+ 387   2                      VKL144_I2CStop();
+ 388   2                      VKL144_Delay_ms(VKL144_BASE100MS/20);
+ 389   2                      VKL144_I2CStart();
+ 390   2                      VKL144_I2CWriteByte(VKL144_ADDR); 
+ 391   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 392   2                      {
+ 393   3                              continue;
+ 394   3                      }
+ 395   2                      
+ 396   2                      VKL144_I2CWriteByte(VKL144_ICSET|BIT1_ENSRST); //复位
+ 397   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 398   2                      {
+ 399   3                              continue;
+ 400   3                      }
+ 401   2                      VKL144_I2CWriteByte(VKL144_ICSET);      //映射起始地址 bit5=0
+ 402   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 403   2                      {
+ 404   3                              continue;
+ 405   3                      }
+ 406   2                      VKL144_I2CWriteByte(VKL144_ADSET); //映射起始地址 bit4~bit0=0
+ 407   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 408   2                      {
+ 409   3                              continue;
+ 410   3                      }
+ 411   2                      errorflag=0;
+ 412   2                      for(n=0;n<VKL144_RAMBUFNUM;n++)
+ 413   2                      { 
+ 414   3                              VKL144_I2CWriteByte(0x00);      // 初始化的显示内存显示映射,可修改这里. 
+ 415   3                              if( SET == VKL144_I2CSlaveAck() )
+ 416   3                              {
+ 417   4                                      continue;
+ 418   4                              }
+ 419   3                              else
+ 420   3                              {
+ 421   4                                      errorflag=1;
+ 422   4                                      break;
+ 423   4                              }
+ 424   3                      }
+ 425   2                      if(errorflag==1)
+ 426   2                      {
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 8   
+
+ 427   3                              continue;
+ 428   3                      }
+ 429   2                      
+ 430   2                      VKL144_I2CStop(); 
+ 431   2                      VKL144_Delay_ms(VKL144_BASE100MS/20);  
+ 432   2                      VKL144_I2CStart();
+ 433   2                      
+ 434   2                      VKL144_I2CWriteByte(VKL144_ADDR);
+ 435   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 436   2                      {
+ 437   3                              continue;
+ 438   3                      }
+ 439   2                      
+ 440   2                      #if     BIAS_1_2
+                              VKL144_I2CWriteByte(VKL144_MODESET_1_2_ON);     //打开显示 1/2bias
+                              #endif
+ 443   2                      
+ 444   2                      #if     BIAS_1_3
+ 445   2                      VKL144_I2CWriteByte(VKL144_MODESET_1_3_ON);     //打开显示 1/3bias
+ 446   2                      #endif
+ 447   2                      
+ 448   2                      if( RESET == VKL144_I2CSlaveAck() )
+ 449   2                      {
+ 450   3                              continue;
+ 451   3                      }
+ 452   2              }
+ 453   1              VKL144_I2CStop();
+ 454   1              VKL144_FunSet(VKL144_DISCTL_DATA);      //工作电流设置
+ 455   1              
+ 456   1              VKL144_num_init();                                      //自动生成液晶屏需要的数组
+ 457   1      }
+ 458          /**
+ 459            * @brief  数据交换，自动生成液晶需要的数组，此程序，需要根据液晶图纸修改
+ 460            * @param  None
+ 461            * @retval None
+ 462            */
+ 463          const unsigned char LED_Tab[]=
+ 464          {
+ 465                  0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0x77,0x7c,0x39,0x5e,0x79,0x71,        //0-15 = 0--f
+ 466                  0x58,   //16=c
+ 467                  0x37,   //17=N
+ 468                  0x40,   //18=-
+ 469                  0x0E,   //19=J
+ 470                  0x3E,   //20=U
+ 471                  0x76,   //21=H
+ 472                  0x30,   //22=I
+ 473          };
+ 474          unsigned char xdata LCD_RAM_Tab[sizeof(LED_Tab)];
+ 475          
+ 476          #define         LCD_A                   0x01
+ 477          #define         LCD_B                   0x02
+ 478          #define         LCD_C                   0x04
+ 479          #define         LCD_D                   0x08
+ 480          #define         LCD_E                   0x10
+ 481          #define         LCD_F                   0x20
+ 482          #define         LCD_G                   0x40
+ 483          #define         LCD_P                   0x00
+ 484          
+ 485          void VKL144_num_init(void)
+ 486          {
+ 487   1              unsigned char num,LCD_data;
+ 488   1              
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 9   
+
+ 489   1              for(num=0; num<sizeof(LED_Tab); num++)
+ 490   1              {
+ 491   2                      LCD_data = 0;
+ 492   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_D)) << 7);
+ 493   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_E)) << 6);
+ 494   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_F)) << 5);
+ 495   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_A)) << 4);
+ 496   2                      
+ 497   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_P)) << 3);
+ 498   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_C)) << 2);
+ 499   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_G)) << 1);
+ 500   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_B)) << 0);
+ 501   2                      
+ 502   2                      LCD_RAM_Tab[num] = LCD_data;
+ 503   2              }
+ 504   1      }
+ 505          
+ 506          void DispJUHUI(void)
+ 507          {
+ 508   1              Write1DataVKL144(VKL144_segtab[2], LCD_RAM_Tab[19]);
+ 509   1              Write1DataVKL144(VKL144_segtab[4], LCD_RAM_Tab[20]);
+ 510   1              
+ 511   1              Write1DataVKL144(VKL144_segtab[8], LCD_RAM_Tab[21]);
+ 512   1              Write1DataVKL144(VKL144_segtab[10],LCD_RAM_Tab[20]);
+ 513   1              Write1DataVKL144(VKL144_segtab[12],LCD_RAM_Tab[22]);
+ 514   1      }
+ 515          
+ 516          void VKL144_Test(void)
+ 517          {       
+ 518   1              VKL144_DisAll(1);
+ 519   1              VKL144_Delay_ms(1000);
+ 520   1              
+ 521   1              VKL144_DisAll(0);
+ 522   1              VKL144_Delay_ms(1000);
+ 523   1              
+ 524   1              for(VKL144_segi=0;VKL144_segi<VKL144_SEGNUM;VKL144_segi++)              //seg
+ 525   1              {
+ 526   2                      for(VKL144_comi=0;VKL144_comi<4;VKL144_comi++)                          //com
+ 527   2                      {
+ 528   3                              VKL144_DisSegOn(VKL144_segtab[VKL144_segi],VKL144_comi);//LCD单个seg点亮
+ 529   3                              VKL144_Delay_ms(100);
+ 530   3                              VKL144_DisAll(0);
+ 531   3                      }
+ 532   2              }
+ 533   1              
+ 534   1              VKL144_DisAll(1);
+ 535   1              VKL144_Delay_ms(1000);
+ 536   1              
+ 537   1              for(VKL144_segi=0;VKL144_segi<VKL144_SEGNUM;VKL144_segi++)              //seg
+ 538   1              {
+ 539   2                      for(VKL144_comi=0;VKL144_comi<4;VKL144_comi++)                          //com
+ 540   2                      {
+ 541   3                              VKL144_DisSegOff(VKL144_segtab[VKL144_segi],VKL144_comi);//LCD单个seg关闭
+ 542   3                              VKL144_Delay_ms(100);
+ 543   3                              VKL144_DisAll(1);
+ 544   3                      }
+ 545   2              }
+ 546   1      }
+ 547          /**
+ 548            * @brief  用户显示程序，需要自己完善
+ 549            * @param  None
+ 550            * @param  None
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 10  
+
+ 551            * @retval None
+ 552            */
+ 553          void VKL144_Display(void)
+ 554          {
+ 555   1              unsigned char Temp_Data,LCD_Data;
+ 556   1              
+ 557   1              //---------------------------------------------------------------
+ 558   1              
+ 559   1              Temp_Data = 12;
+ 560   1              
+ 561   1              LCD_Data = Temp_Data / 10;
+ 562   1              Write1DataVKL144(VKL144_segtab[0],      LCD_RAM_Tab[LCD_Data]);
+ 563   1              LCD_Data = Temp_Data % 10;
+ 564   1              Write1DataVKL144(VKL144_segtab[2],      LCD_RAM_Tab[LCD_Data]);
+ 565   1              
+ 566   1              
+ 567   1              //---------------------------------------------------------------
+ 568   1              
+ 569   1              Temp_Data = 34;
+ 570   1              
+ 571   1              LCD_Data = Temp_Data / 10;
+ 572   1              Write1DataVKL144(VKL144_segtab[4],      LCD_RAM_Tab[LCD_Data]);
+ 573   1              LCD_Data = Temp_Data % 10;
+ 574   1              Write1DataVKL144(VKL144_segtab[6],      LCD_RAM_Tab[LCD_Data]);
+ 575   1              
+ 576   1              //---------------------------------------------------------------
+ 577   1              
+ 578   1              Temp_Data = 56;
+ 579   1              
+ 580   1              LCD_Data = Temp_Data / 10;
+ 581   1              Write1DataVKL144(VKL144_segtab[8],      LCD_RAM_Tab[LCD_Data]);
+ 582   1              LCD_Data = Temp_Data % 10;
+ 583   1              Write1DataVKL144(VKL144_segtab[10],     LCD_RAM_Tab[LCD_Data]);
+ 584   1              
+ 585   1              //---------------------------------------------------------------
+ 586   1              
+ 587   1              Temp_Data = 78;
+ 588   1              
+ 589   1              LCD_Data = Temp_Data / 10;
+ 590   1              Write1DataVKL144(VKL144_segtab[12],     LCD_RAM_Tab[LCD_Data]);
+ 591   1              LCD_Data = Temp_Data % 10;
+ 592   1              Write1DataVKL144(VKL144_segtab[14],     LCD_RAM_Tab[LCD_Data]);
+ 593   1      }
+ 594          /************************END OF FILE****/
+ 595          
+ 596          
+ 597          
+ 598          
+ 599          
+ 600          
+ 601          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1385    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =     23    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     50      35
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.0.0   VKL144                                                            01/12/2021 08:53:07 PAGE 11  
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

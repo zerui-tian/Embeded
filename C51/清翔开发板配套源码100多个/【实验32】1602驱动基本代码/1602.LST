@@ -1,0 +1,128 @@
+C51 COMPILER V8.08   1602                                                                  08/19/2015 12:08:36 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 1602
+OBJECT MODULE PLACED IN 1602.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 1602.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 1602基本显示                                                                               
+  12          * 【使用说明】： 液晶1脚接1602黑色排母的1脚  如果是无背光的液晶只有14个脚 排母右边空2个位   
+  13                           请把液晶对比度电位器顺时针调制10点钟方向，请勿多调超出极限位置会损坏电位器！
+  14          
+  15          
+  16          *  说明：免费开源，不提供源代码分析.
+  17          **********************************************************************************/
+  18          
+  19          #include<reg52.h>
+  20          #define uchar unsigned char
+  21          #define uint unsigned int
+  22          sbit lcden=P3^4;
+  23          sbit rs=P3^5;
+  24          sbit rw=P3^6;   
+  25          sbit dula=P2^6;
+  26          sbit wela=P2^7;
+  27          uchar table1[]="HELLO QX-MCS51";
+  28          uchar table2[]=" QQ:863888999 ";
+  29          void delay(uint x)
+  30          {
+  31   1              uint a,b;
+  32   1              for(a=x;a>0;a--)
+  33   1                      for(b=10;b>0;b--); 
+  34   1      }
+  35          
+  36          void delay1(uint x)
+  37          {
+  38   1              uint a,b;
+  39   1              for(a=x;a>0;a--)
+  40   1                      for(b=100;b>0;b--); 
+  41   1      }
+  42          
+  43          void write_com(uchar com)
+  44          {
+  45   1              P0=com;
+  46   1              rs=0;
+  47   1              lcden=0;
+  48   1              delay(10);
+  49   1              lcden=1;
+  50   1              delay(10);
+  51   1              lcden=0;
+  52   1              
+  53   1      }
+  54          
+  55          void write_date(uchar date)
+C51 COMPILER V8.08   1602                                                                  08/19/2015 12:08:36 PAGE 2   
+
+  56          {
+  57   1              P0=date;
+  58   1              rs=1;
+  59   1              lcden=0;
+  60   1              delay(10);
+  61   1              lcden=1;
+  62   1              delay(10);
+  63   1              lcden=0;
+  64   1              
+  65   1      }
+  66          
+  67          void init()
+  68          {
+  69   1              rw=0;
+  70   1              dula=0;
+  71   1              wela=0;
+  72   1              write_com(0x38);   //显示模式设置：16×2显示，5×7点阵，8位数据接口
+  73   1              delay(20);
+  74   1              write_com(0x0f);   //显示模式设置
+  75   1              delay(20);
+  76   1              write_com(0x06);   //显示模式设置：光标右移，字符不移
+  77   1              delay(20);
+  78   1              write_com(0x01);   //清屏幕指令，将以前的显示内容清除
+  79   1              delay(20);      
+  80   1      }
+  81          
+  82          void main()
+  83          {
+  84   1              uchar a;
+  85   1              init();
+  86   1      
+  87   1              write_com(0x80);         //将第一个字符写在向右偏移17个字符处，为后面的由右向左划入做准备。
+  88   1              delay(20);
+  89   1              for(a=0;a<14;a++)
+  90   1              {
+  91   2              write_date(table1[a]);
+  92   2              delay(20);              
+  93   2              }
+  94   1      
+  95   1              write_com(0xc0);
+  96   1              delay(50);
+  97   1              for(a=0;a<14;a++)
+  98   1              {
+  99   2              write_date(table2[a]);
+ 100   2              delay(40);              
+ 101   2              }
+ 102   1              while(1);
+ 103   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    212    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     30    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

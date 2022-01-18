@@ -1,0 +1,8 @@
+"STARTUP.obj",
+"main.obj",
+"delay.obj",
+"qx51.obj",
+"ds1602.obj",
+"NRFreceive.obj" 
+TO "main" 
+RAMSIZE(256) 

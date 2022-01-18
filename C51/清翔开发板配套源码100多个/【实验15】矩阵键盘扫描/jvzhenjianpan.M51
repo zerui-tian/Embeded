@@ -1,0 +1,264 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        04/26/2015  23:47:10  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE jvzhenjianpan.obj TO jvzhenjianpan RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  jvzhenjianpan.obj (JVZHENJIANPAN)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  jvzhenjianpan (JVZHENJIANPAN)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0005H     UNIT         ?DT?JVZHENJIANPAN
+            IDATA   000DH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     015DH     UNIT         ?PR?MAIN?JVZHENJIANPAN
+            CODE    0160H     008CH     UNIT         ?C_C51STARTUP
+            CODE    01ECH     0017H     UNIT         ?PR?_DISPLAY?JVZHENJIANPAN
+            CODE    0203H     0014H     UNIT         ?PR?_DELAY?JVZHENJIANPAN
+            CODE    0217H     0010H     UNIT         ?CO?JVZHENJIANPAN
+            CODE    0227H     0004H     UNIT         ?C_INITSEG
+
+
+
+OVERLAY MAP OF MODULE:   jvzhenjianpan (JVZHENJIANPAN)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?JVZHENJIANPAN
+  +--> ?C_INITSEG
+
+?PR?MAIN?JVZHENJIANPAN
+  +--> ?PR?_DELAY?JVZHENJIANPAN
+  +--> ?PR?_DISPLAY?JVZHENJIANPAN
+
+?PR?_DISPLAY?JVZHENJIANPAN
+  +--> ?CO?JVZHENJIANPAN
+
+
+
+SYMBOL TABLE OF MODULE:  jvzhenjianpan (JVZHENJIANPAN)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+BL51 BANKED LINKER/LOCATER V6.05                                                      04/26/2015  23:47:10  PAGE 2
+
+
+
+  -------         MODULE        JVZHENJIANPAN
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  C:0217H         PUBLIC        table
+  C:0203H         PUBLIC        _delay
+  B:00A0H.3       PUBLIC        beep
+  C:0003H         PUBLIC        main
+  B:00A0H.6       PUBLIC        dula
+  B:00A0H.7       PUBLIC        wela
+  D:0008H         PUBLIC        temp
+  D:0009H         PUBLIC        key
+  D:000AH         PUBLIC        i
+  D:000BH         PUBLIC        j
+  D:000CH         PUBLIC        k
+  C:01F0H         PUBLIC        _display
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        i
+  C:0203H         LINE#         22
+  C:0203H         LINE#         23
+  C:0203H         LINE#         24
+  C:020CH         LINE#         25
+  C:0216H         LINE#         26
+  -------         ENDPROC       _DELAY
+  C:01ECH         SYMBOL        L?0049
+  -------         PROC          L?0048
+  -------         ENDPROC       L?0048
+  C:01ECH         SYMBOL        L?0049
+  -------         PROC          _DISPLAY
+  D:0007H         SYMBOL        num
+  C:01F0H         LINE#         29
+  C:01F0H         LINE#         30
+  C:01F0H         LINE#         31
+  C:01F7H         LINE#         32
+  C:01F9H         LINE#         33
+  C:01FBH         LINE#         34
+  C:01FEH         LINE#         35
+  C:0200H         LINE#         36
+  C:0202H         LINE#         37
+  -------         ENDPROC       _DISPLAY
+  -------         PROC          MAIN
+  C:0003H         LINE#         38
+  C:0003H         LINE#         39
+  C:0003H         LINE#         40
+  C:0005H         LINE#         41
+  C:0007H         LINE#         42
+  C:0007H         LINE#         43
+  C:0007H         LINE#         44
+  C:000AH         LINE#         45
+  C:000DH         LINE#         46
+  C:0010H         LINE#         47
+  C:0016H         LINE#         48
+  C:0016H         LINE#         49
+  C:001BH         LINE#         50
+  C:0021H         LINE#         51
+BL51 BANKED LINKER/LOCATER V6.05                                                      04/26/2015  23:47:10  PAGE 3
+
+
+  C:0021H         LINE#         52
+  C:0024H         LINE#         53
+  C:0036H         LINE#         54
+  C:0036H         LINE#         55
+  C:0036H         LINE#         56
+  C:0039H         LINE#         57
+  C:003BH         LINE#         59
+  C:003BH         LINE#         60
+  C:003EH         LINE#         61
+  C:0040H         LINE#         63
+  C:0040H         LINE#         64
+  C:0043H         LINE#         65
+  C:0045H         LINE#         67
+  C:0045H         LINE#         68
+  C:0048H         LINE#         69
+  C:0048H         LINE#         70
+  C:0048H         LINE#         71
+  C:004EH         LINE#         72
+  C:004EH         LINE#         73
+  C:0051H         LINE#         74
+  C:0054H         LINE#         75
+  C:0056H         LINE#         76
+  C:0058H         LINE#         77
+  C:0058H         LINE#         78
+  C:005BH         LINE#         80
+  C:005BH         LINE#         81
+  C:005BH         LINE#         82
+  C:005EH         LINE#         83
+  C:0061H         LINE#         84
+  C:0064H         LINE#         85
+  C:006AH         LINE#         86
+  C:006AH         LINE#         87
+  C:006FH         LINE#         88
+  C:0075H         LINE#         89
+  C:0075H         LINE#         90
+  C:0078H         LINE#         91
+  C:008AH         LINE#         92
+  C:008AH         LINE#         93
+  C:008AH         LINE#         94
+  C:008DH         LINE#         95
+  C:008FH         LINE#         97
+  C:008FH         LINE#         98
+  C:0092H         LINE#         99
+  C:0094H         LINE#         101
+  C:0094H         LINE#         102
+  C:0097H         LINE#         103
+  C:0099H         LINE#         105
+  C:0099H         LINE#         106
+  C:009CH         LINE#         107
+  C:009CH         LINE#         108
+  C:009CH         LINE#         109
+  C:00A2H         LINE#         110
+  C:00A2H         LINE#         111
+  C:00A5H         LINE#         112
+  C:00A8H         LINE#         113
+  C:00AAH         LINE#         114
+  C:00ACH         LINE#         115
+BL51 BANKED LINKER/LOCATER V6.05                                                      04/26/2015  23:47:10  PAGE 4
+
+
+  C:00ACH         LINE#         116
+  C:00AFH         LINE#         117
+  C:00AFH         LINE#         118
+  C:00AFH         LINE#         119
+  C:00B2H         LINE#         120
+  C:00B5H         LINE#         121
+  C:00B8H         LINE#         122
+  C:00BEH         LINE#         123
+  C:00BEH         LINE#         124
+  C:00C3H         LINE#         125
+  C:00C9H         LINE#         126
+  C:00C9H         LINE#         127
+  C:00CCH         LINE#         128
+  C:00DEH         LINE#         129
+  C:00DEH         LINE#         130
+  C:00DEH         LINE#         131
+  C:00E1H         LINE#         132
+  C:00E3H         LINE#         134
+  C:00E3H         LINE#         135
+  C:00E6H         LINE#         136
+  C:00E8H         LINE#         138
+  C:00E8H         LINE#         139
+  C:00EBH         LINE#         140
+  C:00EDH         LINE#         142
+  C:00EDH         LINE#         143
+  C:00F0H         LINE#         144
+  C:00F0H         LINE#         145
+  C:00F0H         LINE#         146
+  C:00F6H         LINE#         147
+  C:00F6H         LINE#         148
+  C:00F9H         LINE#         149
+  C:00FCH         LINE#         150
+  C:00FEH         LINE#         151
+  C:0100H         LINE#         152
+  C:0100H         LINE#         153
+  C:0103H         LINE#         154
+  C:0103H         LINE#         155
+  C:0103H         LINE#         156
+  C:0106H         LINE#         157
+  C:0109H         LINE#         158
+  C:010CH         LINE#         159
+  C:0115H         LINE#         160
+  C:0115H         LINE#         161
+  C:011AH         LINE#         162
+  C:0123H         LINE#         163
+  C:0123H         LINE#         164
+  C:0126H         LINE#         165
+  C:0138H         LINE#         166
+  C:0138H         LINE#         167
+  C:0138H         LINE#         168
+  C:013BH         LINE#         169
+  C:013DH         LINE#         171
+  C:013DH         LINE#         172
+  C:0140H         LINE#         173
+  C:0142H         LINE#         175
+  C:0142H         LINE#         176
+  C:0145H         LINE#         177
+BL51 BANKED LINKER/LOCATER V6.05                                                      04/26/2015  23:47:10  PAGE 5
+
+
+  C:0147H         LINE#         179
+  C:0147H         LINE#         180
+  C:014AH         LINE#         181
+  C:014AH         LINE#         182
+  C:014AH         LINE#         183
+  C:0150H         LINE#         184
+  C:0150H         LINE#         185
+  C:0153H         LINE#         186
+  C:0156H         LINE#         187
+  C:0158H         LINE#         188
+  C:015AH         LINE#         189
+  C:015AH         LINE#         190
+  C:015DH         LINE#         191
+  C:015DH         LINE#         192
+  C:015DH         LINE#         193
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        JVZHENJIANPAN
+
+Program Size: data=14.0 xdata=0 code=555
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,107 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        04/26/2015  23:46:35  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE shibie.obj TO shibie
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  shibie.obj (SHIBIE)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  shibie (SHIBIE)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0001H     UNIT         ?DT?SHIBIE
+            IDATA   0009H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     0028H     UNIT         ?PR?MAIN?SHIBIE
+            CODE    002BH     000EH     UNIT         ?PR?_DELAY?SHIBIE
+            CODE    0039H     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   shibie (SHIBIE)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?SHIBIE
+
+?PR?MAIN?SHIBIE
+  +--> ?PR?_DELAY?SHIBIE
+
+
+
+SYMBOL TABLE OF MODULE:  shibie (SHIBIE)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        SHIBIE
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  B:00B0H.1       PUBLIC        S3
+  D:00A8H         PUBLIC        IE
+  C:002BH         PUBLIC        _delay
+BL51 BANKED LINKER/LOCATER V6.05                                                      04/26/2015  23:46:35  PAGE 2
+
+
+  D:00B8H         PUBLIC        IP
+  B:00A0H.3       PUBLIC        beep
+  C:0003H         PUBLIC        main
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  B:0090H.0       PUBLIC        led
+  D:0008H         PUBLIC        num
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        i
+  -------         DO            
+  D:0007H         SYMBOL        j
+  D:0006H         SYMBOL        k
+  -------         ENDDO         
+  C:002BH         LINE#         26
+  C:002BH         LINE#         27
+  C:002BH         LINE#         29
+  C:0031H         LINE#         30
+  C:0038H         LINE#         31
+  -------         ENDPROC       _DELAY
+  -------         PROC          MAIN
+  C:0003H         LINE#         34
+  C:0003H         LINE#         35
+  C:0003H         LINE#         36
+  C:0003H         LINE#         37
+  C:0003H         LINE#         38
+  C:0006H         LINE#         39
+  C:0006H         LINE#         40
+  C:000BH         LINE#         41
+  C:000EH         LINE#         42
+  C:000EH         LINE#         43
+  C:0011H         LINE#         44
+  C:0013H         LINE#         45
+  C:0013H         LINE#         46
+  C:001CH         LINE#         47
+  C:001CH         LINE#         48
+  C:0022H         LINE#         49
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        SHIBIE
+
+Program Size: data=10.0 xdata=0 code=69
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

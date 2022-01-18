@@ -1,0 +1,234 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/15/2015  12:37:01  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE xianshi.obj TO xianshi
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  xianshi.obj (XIANSHI)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?ULDIV)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?ULCMP)
+
+
+LINK MAP OF MODULE:  xianshi (XIANSHI)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     000EH     UNIT         ?DT?XIANSHI
+            DATA    0016H     0008H     UNIT         _DATA_GROUP_
+            IDATA   001EH     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     053EH     UNIT         ?PR?MAIN?XIANSHI
+            CODE    0541H     00DFH     UNIT         ?C?LIB_CODE
+            CODE    0620H     0082H     UNIT         ?PR?_DISPLAY?XIANSHI
+            CODE    06A2H     001AH     UNIT         ?PR?_DELAY?XIANSHI
+            CODE    06BCH     0011H     UNIT         ?CO?XIANSHI
+            CODE    06CDH     000CH     UNIT         ?C_C51STARTUP
+
+
+
+OVERLAY MAP OF MODULE:   xianshi (XIANSHI)
+
+
+SEGMENT                          DATA_GROUP 
+  +--> CALLED SEGMENT          START    LENGTH
+----------------------------------------------
+?C_C51STARTUP                  -----    -----
+  +--> ?PR?MAIN?XIANSHI
+
+?PR?MAIN?XIANSHI               -----    -----
+  +--> ?PR?_DISPLAY?XIANSHI
+
+?PR?_DISPLAY?XIANSHI           0016H    0008H
+  +--> ?CO?XIANSHI
+  +--> ?PR?_DELAY?XIANSHI
+
+
+
+SYMBOL TABLE OF MODULE:  xianshi (XIANSHI)
+
+  VALUE           TYPE          NAME
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/15/2015  12:37:01  PAGE 2
+
+
+  ----------------------------------
+
+  -------         MODULE        XIANSHI
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0080H         PUBLIC        P0
+  D:00A0H         PUBLIC        P2
+  C:06BCH         PUBLIC        table
+  D:00A8H         PUBLIC        IE
+  D:0008H         PUBLIC        a0
+  C:06A8H         PUBLIC        _delay
+  D:0009H         PUBLIC        b0
+  D:000AH         PUBLIC        c0
+  D:000BH         PUBLIC        d0
+  D:000CH         PUBLIC        e0
+  D:000DH         PUBLIC        f0
+  D:000EH         PUBLIC        g0
+  D:000FH         PUBLIC        h0
+  D:00B8H         PUBLIC        IP
+  D:00D8H         PUBLIC        CCON
+  C:0003H         PUBLIC        main
+  B:00A0H.6       PUBLIC        dula
+  B:00A0H.7       PUBLIC        wela
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  D:0010H         PUBLIC        num
+  D:0014H         PUBLIC        j
+  D:0015H         PUBLIC        k
+  C:0620H         PUBLIC        _display
+  D:00D0H         PUBLIC        PSW
+  C:06A2H         SYMBOL        L?0034
+  -------         PROC          L?0033
+  -------         ENDPROC       L?0033
+  C:06A2H         SYMBOL        L?0034
+  -------         PROC          _DELAY
+  D:0007H         SYMBOL        i
+  C:06A8H         LINE#         27
+  C:06A8H         LINE#         28
+  C:06A8H         LINE#         29
+  C:06B1H         LINE#         30
+  C:06BBH         LINE#         31
+  -------         ENDPROC       _DELAY
+  -------         PROC          _DISPLAY
+  D:0007H         SYMBOL        a
+  D:0005H         SYMBOL        b
+  D:0003H         SYMBOL        c
+  D:0019H         SYMBOL        d
+  D:001AH         SYMBOL        e
+  D:001BH         SYMBOL        f
+  D:001CH         SYMBOL        g
+  D:001DH         SYMBOL        h
+  C:0620H         LINE#         33
+  C:0620H         LINE#         34
+  C:0620H         LINE#         35
+  C:0622H         LINE#         36
+  C:0629H         LINE#         37
+  C:062BH         LINE#         38
+  C:062DH         LINE#         40
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/15/2015  12:37:01  PAGE 3
+
+
+  C:062FH         LINE#         41
+  C:0632H         LINE#         42
+  C:0632H         LINE#         43
+  C:0632H         LINE#         44
+  C:0635H         LINE#         46
+  C:0639H         LINE#         47
+  C:063BH         LINE#         48
+  C:063DH         LINE#         50
+  C:0640H         LINE#         51
+  C:0640H         LINE#         52
+  C:0640H         LINE#         53
+  C:0643H         LINE#         55
+  C:0647H         LINE#         56
+  C:0649H         LINE#         57
+  C:064BH         LINE#         59
+  C:064EH         LINE#         60
+  C:064EH         LINE#         62
+  C:064EH         LINE#         63
+  C:0651H         LINE#         65
+  C:0656H         LINE#         66
+  C:0658H         LINE#         67
+  C:065AH         LINE#         69
+  C:065DH         LINE#         70
+  C:065DH         LINE#         71
+  C:065DH         LINE#         72
+  C:0660H         LINE#         74
+  C:0665H         LINE#         75
+  C:0667H         LINE#         76
+  C:0669H         LINE#         78
+  C:066CH         LINE#         79
+  C:066CH         LINE#         80
+  C:066CH         LINE#         81
+  C:066FH         LINE#         83
+  C:0674H         LINE#         84
+  C:0676H         LINE#         85
+  C:0678H         LINE#         87
+  C:067BH         LINE#         88
+  C:067BH         LINE#         89
+  C:067BH         LINE#         90
+  C:067EH         LINE#         92
+  C:0683H         LINE#         93
+  C:0685H         LINE#         94
+  C:0687H         LINE#         96
+  C:068AH         LINE#         97
+  C:068AH         LINE#         98
+  C:068AH         LINE#         99
+  C:068DH         LINE#         101
+  C:0692H         LINE#         102
+  C:0694H         LINE#         103
+  C:0696H         LINE#         105
+  C:0699H         LINE#         106
+  C:069BH         LINE#         107
+  C:069DH         LINE#         108
+  -------         ENDPROC       _DISPLAY
+  -------         PROC          MAIN
+  C:0003H         LINE#         111
+  C:0003H         LINE#         112
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/15/2015  12:37:01  PAGE 4
+
+
+  C:0003H         LINE#         113
+  C:000FH         LINE#         115
+  C:000FH         LINE#         116
+  C:000FH         LINE#         118
+  C:0023H         LINE#         119
+  C:0023H         LINE#         120
+  C:0029H         LINE#         121
+  C:002BH         LINE#         123
+  C:002BH         LINE#         124
+  C:003FH         LINE#         125
+  C:006CH         LINE#         127
+  C:006CH         LINE#         128
+  C:0081H         LINE#         129
+  C:00D3H         LINE#         131
+  C:00D3H         LINE#         132
+  C:00E8H         LINE#         133
+  C:0160H         LINE#         135
+  C:0160H         LINE#         136
+  C:0179H         LINE#         137
+  C:0217H         LINE#         139
+  C:0217H         LINE#         140
+  C:0230H         LINE#         141
+  C:02F6H         LINE#         143
+  C:02F6H         LINE#         144
+  C:030FH         LINE#         145
+  C:03FDH         LINE#         147
+  C:03FDH         LINE#         148
+  C:0416H         LINE#         149
+  C:0526H         LINE#         150
+  C:0526H         LINE#         151
+  C:0526H         LINE#         152
+  C:0526H         LINE#         153
+  C:0526H         LINE#         154
+  C:0526H         LINE#         155
+  C:0526H         LINE#         156
+  C:0526H         LINE#         157
+  C:053EH         LINE#         158
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        XIANSHI
+
+  -------         MODULE        ?C?ULDIV
+  C:057DH         PUBLIC        ?C?ULDIV
+  -------         ENDMOD        ?C?ULDIV
+
+  -------         MODULE        ?C?ULCMP
+  C:060FH         PUBLIC        ?C?ULCMP
+  -------         ENDMOD        ?C?ULCMP
+
+Program Size: data=31.0 xdata=0 code=1753
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

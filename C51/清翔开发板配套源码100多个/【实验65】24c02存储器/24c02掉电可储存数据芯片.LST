@@ -1,0 +1,23 @@
+C51 COMPILER V8.08   24C02掉电可储存数据芯片                                               08/18/2015 21:34:59 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 24C02掉电可储存数据芯片
+OBJECT MODULE PLACED IN 24c02掉电可储存数据芯片.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 24c02掉电可储存数据芯片.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    405    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

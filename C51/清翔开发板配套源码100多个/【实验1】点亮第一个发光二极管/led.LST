@@ -1,0 +1,48 @@
+C51 COMPILER V8.08   LED                                                                   08/15/2015 12:10:40 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE LED
+OBJECT MODULE PLACED IN led.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE led.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * ¡¾±àÐ´Ê±¼ä¡¿£º 2014Äê3ÔÂ5ÈÕ
+   3          * ¡¾×÷    Õß¡¿£º ÇåÏèµç×Ó:03
+   4          * ¡¾°æ    ±¾¡¿£º 1.0
+   5          * ¡¾Íø    Õ¾¡¿£º http://www.qxmcu.com/ 
+   6          * ¡¾ÌÔ±¦µêÆÌ¡¿£º http://qxmcu.taobao.com/ 
+   7          * ¡¾ÊµÑéÆ½Ì¨¡¿£º QX-MCS51 µ¥Æ¬»ú¿ª·¢°å
+   8          * ¡¾Íâ²¿¾§Õñ¡¿£º 11.0592mhz     
+   9          * ¡¾Ö÷¿ØÐ¾Æ¬¡¿£º STC89C52
+  10          * ¡¾±àÒë»·¾³¡¿£º Keil ¦ÌVisio3  
+  11          * ¡¾³ÌÐò¹¦ÄÜ¡¿£º µãÁÁÒ»¸ö·¢¹â¶þ¼«¹Ü                                                                                 
+  12          * ¡¾Ê¹ÓÃËµÃ÷¡¿£º 
+  13          *  ËµÃ÷£ºÃâ·Ñ¿ªÔ´£¬²»Ìá¹©Ô´´úÂë·ÖÎö.
+  14          **********************************************************************************/
+  15          
+  16          #include <reg51.h> //°üº¬Í·ÎÄ¼þ£¬ÔÚ¡°reg51.h¡±ÉÏÓÒ¼üµ¥»÷£¬²¢´ò¿ª£¬¿ÉÒÔ¿´µ½ËüÀïÃæµÄ¶¨Òå
+  17                             //µ±È»Ò²¿ÉÒÔ¸Ä³É reg52.h  STC.H ¹¦ÄÜÒ»ÑùµÄ£¬Ö»ÊÇ¶¨ÒåµÄIO¿ÚÓÐÒ»µãÇø±ð£¬51µ¥Æ¬»ú¿ÉÒÔÍ¨ÓÃ¡
+             -£
+  18          sbit led=P1^0;  //¶¨ÒåÒ»¸öLED ÎªP1.0 IO¿Ú
+  19          
+  20          void main()     //CÓïÑÔÖ÷º¯Êý
+  21          {  
+  22   1              led=0;   //µ¥Æ¬»úIO P1.0½ÅÊä³öÒ»¸öµÍµçÆ½£¬µãÁÁ·¢¹â¹Ü¡£ ¸ßµçÆ½Îª5V µÍµçÆ½Îª0¡£
+  23   1              while(1);
+  24   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      4    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

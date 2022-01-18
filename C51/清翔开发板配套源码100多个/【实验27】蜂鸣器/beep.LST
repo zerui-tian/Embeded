@@ -1,0 +1,54 @@
+C51 COMPILER V8.08   BEEP                                                                  08/15/2015 13:03:20 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE BEEP
+OBJECT MODULE PLACED IN beep.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE beep.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 本程序为蜂鸣器的基本驱动示例，当按键S2被按下时，蜂鸣器响。
+  12                                  松开后不响                                                                                  
+  13          * 【使用说明】： 
+  14          *  说明：免费开源，不提供源代码分析.
+  15          **********************************************************************************/
+  16          
+  17          #include<reg52.h>
+  18          
+  19          sbit s2=P3^0;
+  20          sbit beep=P2^3;
+  21          
+  22          void main()
+  23          {
+  24   1              while(1)
+  25   1              {
+  26   2                      if(!s2)
+  27   2                              beep=0;
+  28   2                      else
+  29   2                              beep=1;
+  30   2              }
+  31   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     11    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

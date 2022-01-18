@@ -1,0 +1,187 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              03/28/2021 22:51:22 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include<LCD1602.h>
+   2          #include<reg51.h>
+   3          #include<main.h>
+   4          #include<LCD1602.h>
+   5          #include<math.h>
+   6          
+   7          //negative edge counter
+   8          unsigned int negedgeCounter;
+   9          
+  10          //buffers
+  11          unsigned int counterBuffer;
+  12          unsigned int counterBuffer_last;
+  13          unsigned char gearBuffer;
+  14          
+  15          //state variables and flags
+  16          unsigned char gear;
+  17          bit updateFlag;
+  18          bit isBusy_Updater;
+  19          bit fipfop;
+  20          bit overflow;
+  21          bit hasSignal;
+  22          
+  23          //strings and tables
+  24          char line1[16] = "FREQUENCY  METER";
+  25          char unitTable[3] = {' ','k','M'};
+  26          unsigned char gearTable[4] = {0x7E, 0x9F, 0xF3, 0xED};
+  27          
+  28          
+  29          void Frequency_Updater(unsigned int counter, unsigned char gear){
+  30   1        char line2[16] = "              Hz";
+  31   1        unsigned int counter_temp = counter;
+  32   1        if(counter_temp > 0){
+  33   2          unsigned char orderOfCounter=0;
+  34   2          unsigned char orderOfFreq;
+  35   2          long int power10 = 1;
+  36   2          int ptr=0;
+  37   2          isBusy_Updater = 1;
+  38   2          
+  39   2          //[orderOfCounter] is the number of digits in [counter]
+  40   2          //  e.g. 1    -> [orderOfCounter]=1
+  41   2          //  e.g. 1000 -> [orderOfCounter]=4
+  42   2          while(counter_temp/power10!=0){
+  43   3            power10 *= 10;
+  44   3            orderOfCounter++;
+  45   3          }
+  46   2          
+  47   2          //[orderOfFreq] is the number of digits in real frequency value
+  48   2          orderOfFreq = orderOfCounter + 3 - gear;
+  49   2          
+  50   2          //add unit prefix
+  51   2          // e.g. orderOfFreq=4 unitTable[1]='k'
+  52   2          // e.g. orderOfFreq=8 unitTable[2]='M'
+  53   2          line2[13] = unitTable[(orderOfFreq-1)/3];
+  54   2          
+C51 COMPILER V9.60.0.0   MAIN                                                              03/28/2021 22:51:22 PAGE 2   
+
+  55   2          while(1){
+  56   3            //do not add fraction point at the beginning or the end of the number
+  57   3            if(orderOfFreq%3==0&&ptr!=0&&orderOfFreq!=0){
+  58   4              line2[ptr++] = '.';
+  59   4            }
+  60   3            counter_temp %= power10;
+  61   3            power10 /= 10;
+  62   3            line2[ptr++]=(char)(counter_temp/power10)+'0';
+  63   3            if(power10<=1){
+  64   4              break;
+  65   4            }
+  66   3            orderOfFreq--;
+  67   3          }
+  68   2          
+  69   2          //patch the digits
+  70   2          if(gear==2&&orderOfCounter<3){
+  71   3            line2[ptr++] = '*';
+  72   3          }
+  73   2          else if(gear==1&&counter<10){
+  74   3            line2[ptr++] = '*';
+  75   3            line2[ptr++] = '*';
+  76   3          }
+  77   2          else{
+  78   3          }
+  79   2        }
+  80   1        else{
+  81   2          line2[0] = '0';
+  82   2        }
+  83   1        LCD1602_Refresh(line1, line2);
+  84   1        updateFlag=0;
+  85   1        isBusy_Updater = 0;
+  86   1      }
+  87          
+  88          void initializer(){
+  89   1        LCD1602_Init();
+  90   1        
+  91   1        //initial variables
+  92   1        isBusy_Updater = 0;
+  93   1        negedgeCounter = 0;
+  94   1        updateFlag=0;
+  95   1        fipfop = 0;
+  96   1        gear = 0;
+  97   1        gearBuffer = 1;
+  98   1        hasSignal = 1;
+  99   1        overflow = 0;
+ 100   1        P2 = gearTable[gear];
+ 101   1        counterBuffer_last = 0xFFFF;
+ 102   1        
+ 103   1        IP = 0x01;//EX0 has the highest power
+ 104   1        
+ 105   1        IT0=1;//negative edge trigger external interrupt0
+ 106   1        IT1=1;//negative edge trigger external interrupt1
+ 107   1        EX0=1;//enable trigger external interrupt0
+ 108   1        EX1=1;//enable trigger external interrupt0
+ 109   1        EA=1;
+ 110   1      }
+ 111          
+ 112          void main(){
+ 113   1        initializer();
+ 114   1        while(1){
+ 115   2          if(updateFlag){
+ 116   3            Frequency_Updater(counterBuffer, gearBuffer);
+C51 COMPILER V9.60.0.0   MAIN                                                              03/28/2021 22:51:22 PAGE 3   
+
+ 117   3          }
+ 118   2        }
+ 119   1      }
+ 120          
+ 121          void periodical_interrupt_500ms() interrupt 2{
+ 122   1        if(isBusy_Updater){
+ 123   2          return;
+ 124   2        }
+ 125   1        hasSignal = !((counterBuffer==0&&gear==3)||!hasSignal);
+ 126   1        if(fipfop){
+ 127   2          counterBuffer_last = counterBuffer;//cache last [counterBuffer]
+ 128   2          counterBuffer=negedgeCounter;//record [negedgeCounter]
+ 129   2          gearBuffer = gear;//record [gear]
+ 130   2          negedgeCounter=0;//reset the negative edge counter
+ 131   2          updateFlag=1;//inform update function
+ 132   2        }
+ 133   1        else{
+ 134   2          if(hasSignal){
+ 135   3            if(gear<3&&!overflow&&
+ 136   3              ((counterBuffer <= 3300&&abs(counterBuffer_last-counterBuffer)<counterBuffer/100)||
+ 137   3                (counterBuffer <= 100)
+ 138   3              )
+ 139   3            ){
+ 140   4              gear++;
+ 141   4            }
+ 142   3            else if(overflow&&gear>0){
+ 143   4              gear = 0;
+ 144   4              overflow = 0;
+ 145   4            }
+ 146   3            else{
+ 147   4            }
+ 148   3          }
+ 149   2          else{
+ 150   3            hasSignal = counterBuffer>0;
+ 151   3          }
+ 152   2        }
+ 153   1        P2 = gearTable[gear];
+ 154   1        fipfop = ~fipfop;
+ 155   1      }
+ 156          void negetive_edge_counter() interrupt 0{
+ 157   1        overflow = negedgeCounter > 0x80E7;
+ 158   1        negedgeCounter++;
+ 159   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    734    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     31      29
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      5    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

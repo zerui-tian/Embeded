@@ -1,0 +1,36 @@
+C51 COMPILER V8.08   QX51                                                                  08/19/2015 12:54:25 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE QX51
+OBJECT MODULE PLACED IN qx51.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE QX51\qx51.c BROWSE DEBUG OBJECTEXTEND PRINT(.\qx51.lst) OBJECT(qx51.obj)
+
+line level    source
+
+   1          /*
+   2          *功能：
+   3          *       初始化QX-X351开发板
+   4          *时间：
+   5          *       14-2-13
+   6          */
+   7          #include "reg52.h"/*包含STC单片机头文件*/
+   8          #include "qx51.h"/*包含qx51开发板头文件*/
+   9          void qx51_init(void)
+  10          {
+  11   1              wela=0;//关闭数码管显示位选
+  12   1              dula=0;//关闭数码管显示段选
+  13   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      5    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

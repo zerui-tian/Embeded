@@ -1,0 +1,88 @@
+C51 COMPILER V8.08   FENPINQI2                                                             08/19/2015 10:21:37 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE FENPINQI2
+OBJECT MODULE PLACED IN fenpinqi2.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE fenpinqi2.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /*****************************************************************
+  16          程序功能： 本例程为简易分频器。
+  17                             实验前，请用排线（杜邦线）将QX-MCS51学习板的P1^0管脚与P3^2(INT0)
+  18                             管脚相连。因为P1^0用来模拟外界波形输入，它提供周期为100ms的方波，
+  19                             与T1管脚相连后，T1可对其进行周期计数。
+  20                             程序中的变量pp决定着分频系数，其值乘以2即为分频系数。
+  21                             改变其值可以得到相应的分频输出波形（方波）。
+  22                              P1^1为输出管脚，将其连接示波器可以看到分频后的波形。
+  23          ********************************************************************/
+  24          
+  25          #include<reg52.h>
+  26          #define uchar unsigned char
+  27          
+  28          uchar pp;
+  29          sbit shuru=P1^0;
+  30          sbit shuchu=P1^1;
+  31          
+  32          void main()
+  33          {
+  34   1              TMOD=0x01;      //定时计数器0用于定时
+  35   1              TR0=1;
+  36   1              TH0=0x4c;// 计时器每隔50000微秒发起一次中断。
+  37   1              TL0=0x00;
+  38   1              ET0=1;
+  39   1              EA=1;
+  40   1              EX0=1;   //打开外部中断0
+  41   1              IT0=1;
+  42   1      
+  43   1      
+  44   1              while(1)
+  45   1              {
+  46   2                      if(pp==1)                  //对从T1端口采得的波形二分频。
+  47   2                      {                                  //改变其值即可得到不同分频后的波形。
+  48   3                              shuchu=~shuchu;//每隔一个输入方波的周期，输出的电变换一次，故输出波形的周期是输入的二倍。
+  49   3                              pp=0;
+  50   3                      }
+  51   2              }
+  52   1      }
+  53          
+  54          void time0() interrupt 1
+  55          {       TH0=0x4c;
+C51 COMPILER V8.08   FENPINQI2                                                             08/19/2015 10:21:37 PAGE 2   
+
+  56   1              TL0=0x00;
+  57   1              shuru=~shuru; //定时器每隔50ms发起一次中断，shuru电平变换一次，故模拟输入方波的周期为100ms
+  58   1      }
+  59          
+  60          void inrpt() interrupt 0
+  61          {
+  62   1              pp++;
+  63   1      } 
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     43    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      1    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

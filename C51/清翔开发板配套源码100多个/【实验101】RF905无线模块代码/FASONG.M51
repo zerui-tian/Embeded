@@ -1,0 +1,376 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/19/2015  11:48:44  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE Fasong.obj TO FASONG RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  Fasong.obj (FASONG)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+  C:\KEIL\C51\LIB\C51S.LIB (?C?CLDOPTR)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_INIT)
+
+
+LINK MAP OF MODULE:  FASONG (FASONG)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            DATA    0008H     0005H     UNIT         ?DT?FASONG
+            DATA    000DH     0003H     UNIT         _DATA_GROUP_
+            IDATA   0010H     000BH     UNIT         ?ID?FASONG
+                    001BH     0005H                  *** GAP ***
+            DATA    0020H     0001H     BIT_ADDR     ?BA?FASONG
+            IDATA   0021H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     008CH     UNIT         ?C_C51STARTUP
+            CODE    008FH     005CH     UNIT         ?PR?_TXPACKET?FASONG
+            CODE    00EBH     0039H     UNIT         ?PR?RXPACKET?FASONG
+            CODE    0124H     0030H     UNIT         ?PR?MAIN?FASONG
+            CODE    0154H     002DH     UNIT         ?PR?_NRF905_DELAY?FASONG
+            CODE    0181H     002DH     UNIT         ?C?LIB_CODE
+            CODE    01AEH     001EH     UNIT         ?PR?SPIREAD?FASONG
+            CODE    01CCH     001EH     UNIT         ?PR?_SPIWRITE?FASONG
+            CODE    01EAH     0016H     UNIT         ?PR?RX?FASONG
+            CODE    0200H     0014H     UNIT         ?PR?CONFIG905?FASONG
+            CODE    0214H     0014H     UNIT         ?C_INITSEG
+            CODE    0228H     0011H     UNIT         ?PR?NRF905INIT?FASONG
+            CODE    0239H     000DH     UNIT         ?PR?CHECKDR?FASONG
+            CODE    0246H     000BH     UNIT         ?PR?SETTXMODE?FASONG
+            CODE    0251H     000BH     UNIT         ?PR?SETRXMODE?FASONG
+            CODE    025CH     0008H     UNIT         ?CO?FASONG
+
+
+
+OVERLAY MAP OF MODULE:   FASONG (FASONG)
+
+
+SEGMENT                            DATA_GROUP 
+  +--> CALLED SEGMENT            START    LENGTH
+------------------------------------------------
+?C_C51STARTUP                    -----    -----
+  +--> ?PR?MAIN?FASONG
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 2
+
+
+  +--> ?C_INITSEG
+
+?PR?MAIN?FASONG                  -----    -----
+  +--> ?PR?NRF905INIT?FASONG
+  +--> ?PR?CONFIG905?FASONG
+  +--> ?PR?RX?FASONG
+  +--> ?PR?SETTXMODE?FASONG
+  +--> ?PR?_TXPACKET?FASONG
+  +--> ?PR?_NRF905_DELAY?FASONG
+
+?PR?CONFIG905?FASONG             -----    -----
+  +--> ?PR?_SPIWRITE?FASONG
+
+?PR?RX?FASONG                    -----    -----
+  +--> ?PR?SETRXMODE?FASONG
+  +--> ?PR?_NRF905_DELAY?FASONG
+  +--> ?PR?RXPACKET?FASONG
+
+?PR?SETRXMODE?FASONG             -----    -----
+  +--> ?PR?_NRF905_DELAY?FASONG
+
+?PR?RXPACKET?FASONG              -----    -----
+  +--> ?PR?_NRF905_DELAY?FASONG
+  +--> ?PR?_SPIWRITE?FASONG
+  +--> ?PR?SPIREAD?FASONG
+
+?PR?SETTXMODE?FASONG             -----    -----
+  +--> ?PR?_NRF905_DELAY?FASONG
+
+?PR?_TXPACKET?FASONG             000DH    0003H
+  +--> ?PR?_SPIWRITE?FASONG
+  +--> ?PR?_NRF905_DELAY?FASONG
+  +--> ?CO?FASONG
+
+
+
+SYMBOL TABLE OF MODULE:  FASONG (FASONG)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        FASONG
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  C:0251H         PUBLIC        SetRxMode
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  C:0246H         PUBLIC        SetTxMode
+  D:00B0H         PUBLIC        P3
+  B:0090H.2       PUBLIC        CD
+  B:0090H.4       PUBLIC        AM
+  D:00A8H         PUBLIC        IE
+  B:00B0H.3       PUBLIC        DR
+  C:025CH         PUBLIC        TxAddress
+  D:00B8H         PUBLIC        IP
+  B:0020H.7       PUBLIC        flag
+  I:0010H         PUBLIC        RFConf
+  C:0124H         PUBLIC        main
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 3
+
+
+  C:00EBH         PUBLIC        RxPacket
+  C:008FH         PUBLIC        _TxPacket
+  C:01EAH         PUBLIC        RX
+  C:01AEH         PUBLIC        SpiRead
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  D:0008H         PUBLIC        TxRxBuf
+  C:0163H         PUBLIC        _nrf905_Delay
+  B:0090H.5       PUBLIC        MOSI
+  B:0090H.6       PUBLIC        MISO
+  C:01CCH         PUBLIC        _SpiWrite
+  C:0228H         PUBLIC        nRF905Init
+  B:0090H.0       PUBLIC        TXEN
+  B:0020H.0       PUBLIC        flag1
+  B:00A0H.3       PUBLIC        LED
+  D:0020H         PUBLIC        DATA_BUF
+  D:000CH         PUBLIC        tf
+  B:0090H.7       PUBLIC        SCK
+  B:0090H.3       PUBLIC        CSN
+  B:00B0H.2       PUBLIC        TRX_CE
+  D:00C8H         PUBLIC        T2CON
+  B:00B0H.0       PUBLIC        KEY
+  C:0239H         PUBLIC        CheckDR
+  C:0200H         PUBLIC        Config905
+  B:0090H.1       PUBLIC        PWR
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          L?0051
+  -------         ENDPROC       L?0051
+  -------         PROC          _NRF905_DELAY
+  D:0006H         SYMBOL        n
+  -------         DO            
+  D:0004H         SYMBOL        i
+  -------         ENDDO         
+  C:0163H         LINE#         66
+  C:0163H         LINE#         67
+  C:0163H         LINE#         69
+  C:016DH         LINE#         70
+  C:0180H         LINE#         71
+  -------         ENDPROC       _NRF905_DELAY
+  -------         PROC          SPIREAD
+  -------         DO            
+  D:0007H         SYMBOL        j
+  -------         ENDDO         
+  C:01AEH         LINE#         73
+  C:01AEH         LINE#         74
+  C:01AEH         LINE#         76
+  C:01B0H         LINE#         77
+  C:01B0H         LINE#         78
+  C:01B6H         LINE#         79
+  C:01B8H         LINE#         80
+  C:01BBH         LINE#         81
+  C:01BBH         LINE#         82
+  C:01BEH         LINE#         83
+  C:01C0H         LINE#         85
+  C:01C0H         LINE#         86
+  C:01C3H         LINE#         87
+  C:01C3H         LINE#         88
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 4
+
+
+  C:01C5H         LINE#         89
+  C:01C9H         LINE#         90
+  C:01CBH         LINE#         91
+  -------         ENDPROC       SPIREAD
+  -------         PROC          _SPIWRITE
+  D:0007H         SYMBOL        send
+  -------         DO            
+  D:0007H         SYMBOL        i
+  -------         ENDDO         
+  C:01CCH         LINE#         93
+  C:01CCH         LINE#         94
+  C:01CCH         LINE#         96
+  C:01CEH         LINE#         97
+  C:01D0H         LINE#         98
+  C:01D0H         LINE#         99
+  C:01D5H         LINE#         100
+  C:01D5H         LINE#         101
+  C:01D7H         LINE#         102
+  C:01D9H         LINE#         104
+  C:01D9H         LINE#         105
+  C:01DBH         LINE#         106
+  C:01DBH         LINE#         107
+  C:01DDH         LINE#         108
+  C:01E3H         LINE#         109
+  C:01E5H         LINE#         110
+  C:01E9H         LINE#         111
+  -------         ENDPROC       _SPIWRITE
+  -------         PROC          NRF905INIT
+  C:0228H         LINE#         113
+  C:0228H         LINE#         114
+  C:0228H         LINE#         115
+  C:022AH         LINE#         116
+  C:022CH         LINE#         117
+  C:022EH         LINE#         118
+  C:0230H         LINE#         119
+  C:0232H         LINE#         120
+  C:0234H         LINE#         121
+  C:0236H         LINE#         122
+  C:0238H         LINE#         123
+  -------         ENDPROC       NRF905INIT
+  -------         PROC          CONFIG905
+  -------         DO            
+  D:0006H         SYMBOL        i
+  -------         ENDDO         
+  C:0200H         LINE#         125
+  C:0200H         LINE#         126
+  C:0200H         LINE#         128
+  C:0202H         LINE#         130
+  C:0204H         LINE#         131
+  C:0204H         LINE#         132
+  C:020DH         LINE#         133
+  C:0211H         LINE#         134
+  C:0213H         LINE#         135
+  -------         ENDPROC       CONFIG905
+  -------         PROC          _TXPACKET
+  D:000DH         SYMBOL        TxRxBuf
+  -------         DO            
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 5
+
+
+  D:0006H         SYMBOL        i
+  -------         ENDDO         
+  C:008FH         LINE#         137
+  C:0095H         LINE#         138
+  C:0095H         LINE#         141
+  C:0097H         LINE#         142
+  C:009CH         LINE#         143
+  C:009EH         LINE#         144
+  C:009EH         LINE#         145
+  C:00B0H         LINE#         146
+  C:00B4H         LINE#         147
+  C:00B6H         LINE#         148
+  C:00BDH         LINE#         149
+  C:00BFH         LINE#         150
+  C:00C4H         LINE#         151
+  C:00C6H         LINE#         152
+  C:00C6H         LINE#         153
+  C:00D9H         LINE#         154
+  C:00DDH         LINE#         155
+  C:00DFH         LINE#         156
+  C:00E1H         LINE#         157
+  C:00E8H         LINE#         158
+  C:00EAH         LINE#         159
+  -------         ENDPROC       _TXPACKET
+  -------         PROC          SETTXMODE
+  C:0246H         LINE#         161
+  C:0246H         LINE#         162
+  C:0246H         LINE#         163
+  C:0248H         LINE#         164
+  C:024AH         LINE#         165
+  -------         ENDPROC       SETTXMODE
+  -------         PROC          SETRXMODE
+  C:0251H         LINE#         168
+  C:0251H         LINE#         169
+  C:0251H         LINE#         170
+  C:0253H         LINE#         171
+  C:0255H         LINE#         172
+  -------         ENDPROC       SETRXMODE
+  -------         PROC          CHECKDR
+  C:0239H         LINE#         175
+  C:0239H         LINE#         176
+  C:0239H         LINE#         177
+  C:023BH         LINE#         179
+  C:023EH         LINE#         180
+  C:023EH         LINE#         181
+  C:0240H         LINE#         182
+  C:0243H         LINE#         183
+  C:0243H         LINE#         185
+  C:0243H         LINE#         186
+  C:0245H         LINE#         187
+  C:0245H         LINE#         189
+  -------         ENDPROC       CHECKDR
+  -------         PROC          RXPACKET
+  -------         DO            
+  D:0006H         SYMBOL        i
+  -------         ENDDO         
+  C:00EBH         LINE#         191
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 6
+
+
+  C:00EBH         LINE#         192
+  C:00EBH         LINE#         194
+  C:00F2H         LINE#         196
+  C:00F9H         LINE#         197
+  C:00FBH         LINE#         198
+  C:00FDH         LINE#         199
+  C:0104H         LINE#         200
+  C:0109H         LINE#         201
+  C:010BH         LINE#         202
+  C:010BH         LINE#         203
+  C:0114H         LINE#         204
+  C:0118H         LINE#         205
+  C:011AH         LINE#         206
+  C:0121H         LINE#         207
+  C:0123H         LINE#         208
+  -------         ENDPROC       RXPACKET
+  -------         PROC          RX
+  C:01EAH         LINE#         210
+  C:01EAH         LINE#         211
+  C:01EAH         LINE#         212
+  C:01EDH         LINE#         214
+  C:01F4H         LINE#         215
+  C:01F7H         LINE#         216
+  C:01FCH         LINE#         217
+  C:01FCH         LINE#         218
+  C:01FCH         LINE#         219
+  C:01FCH         LINE#         220
+  C:01FCH         LINE#         221
+  C:01FFH         LINE#         222
+  C:01FFH         LINE#         224
+  -------         ENDPROC       RX
+  -------         PROC          MAIN
+  C:0124H         LINE#         226
+  C:0124H         LINE#         227
+  C:0124H         LINE#         228
+  C:0127H         LINE#         229
+  C:012AH         LINE#         230
+  C:012CH         LINE#         231
+  C:012CH         LINE#         232
+  C:012CH         LINE#         233
+  C:012FH         LINE#         234
+  C:0132H         LINE#         235
+  C:0132H         LINE#         236
+  C:0135H         LINE#         237
+  C:0138H         LINE#         238
+  C:013BH         LINE#         239
+  C:013BH         LINE#         241
+  C:0140H         LINE#         242
+  C:0140H         LINE#         243
+  C:0143H         LINE#         244
+  C:014CH         LINE#         245
+  C:014CH         LINE#         246
+  C:014CH         LINE#         247
+  C:014CH         LINE#         248
+  C:014FH         LINE#         249
+  C:0152H         LINE#         250
+  C:0152H         LINE#         251
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/19/2015  11:48:44  PAGE 7
+
+
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        FASONG
+
+  -------         MODULE        ?C?CLDOPTR
+  C:0181H         PUBLIC        ?C?CLDOPTR
+  -------         ENDMOD        ?C?CLDOPTR
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CHECKDR?FASONG
+
+Program Size: data=29.0 xdata=0 code=612
+LINK/LOCATE RUN COMPLETE.  1 WARNING(S),  0 ERROR(S)

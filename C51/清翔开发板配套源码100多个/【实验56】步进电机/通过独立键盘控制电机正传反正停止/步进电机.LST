@@ -1,0 +1,70 @@
+C51 COMPILER V8.08   步絖电籣                                                              12/19/2014 08:55:47 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 步絖电籣
+OBJECT MODULE PLACED IN 步进电机.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 步进电机.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include<reg52.h>
+   2          #define uchar unsigned char
+   3          sbit K1=P3^0;   //      按下独立键盘S2正转
+   4          sbit K2=P3^1;   //      按下独立键盘S3反转
+   5          sbit K3=P3^2;   //      按下独立键盘S4停转
+   6          uchar code table[]={0xf1,0xf3,0xf2,0xf6,0xf4,0xfc,0xf8,0xf9};
+   7          uchar code table1[]={0xf9,0xf8,0xfc,0xf4,0xf6,0xf2,0xf3,0xf1};
+   8          void delay(uchar z)
+   9          {
+  10   1              uchar x,y;
+  11   1              for(x=z;x>0;x--)
+  12   1                      for(y=120;y>0;y--);
+  13   1      }
+  14          void main()
+  15          {
+  16   1              uchar k,i;
+  17   1              P1=table[0];
+  18   1              while(1)
+  19   1              {
+  20   2                      if(!K1)
+  21   2                      delay(5);
+  22   2                      if(!K1)
+  23   2                      k=1;
+  24   2      
+  25   2                      if(!K2)
+  26   2                      delay(5);
+  27   2                      if(!K2)
+  28   2                      k=2;
+  29   2      
+  30   2                      if(!K3)
+  31   2                      delay(5);
+  32   2                      if(!K3)
+  33   2                      k=3;
+  34   2      
+  35   2                      if(k==1||k==2)
+  36   2                      {
+  37   3                              for(i=0;i<8;i++)
+  38   3                              {
+  39   4                                      if(k==1) P1=table[i];
+  40   4                                      else P1=table1[i];
+  41   4                                      delay(20);
+  42   4                              }
+  43   3                      }
+  44   2              }
+  45   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     99    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+C51 COMPILER V8.08   步絖电籣                                                              12/19/2014 08:55:47 PAGE 2   
+
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

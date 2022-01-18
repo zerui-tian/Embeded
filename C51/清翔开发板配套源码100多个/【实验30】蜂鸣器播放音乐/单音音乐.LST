@@ -1,0 +1,152 @@
+C51 COMPILER V8.08   单音音繽                                                              08/15/2015 15:22:41 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 单音音繽
+OBJECT MODULE PLACED IN 单音音乐.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 单音音乐.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 实验板唱歌实验(歌曲：新年好)                                                                               
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include <at89x52.h>
+  17          #define uchar unsigned char
+  18          bit flag; //标志音乐输出脚电平的高低
+  19          uchar ptr = 0x00; //取音符
+  20          uchar high; //计数器高位
+  21          uchar low; //计数器低位
+  22          // 本曲谱为 "新年好",前两个十六进制表示发声频率,后一个表示发声时间,0xFF,0xFF 表示休止符
+  23          // 0x00 表示结束
+  24          // 1 _ 1_ 1 .5
+  25          uchar code music[] = {
+  26          0xFC,0x44,0x7F, 0xFC,0x44,0x7F, 0xFC,0x44,0xFF, 0xFA,0x68,0xFF,
+  27          // 3 _ 3_ 3 1
+  28          0xFD,0x23,0x7F, 0xFD,0x23,0x7F, 0xFD,0x23,0xFF, 0xFC,0x44,0xFF,
+  29          // 1_ 3_ 5 5
+  30          0xFC,0x44,0x7F, 0xFD,0x23,0x7F, 0xFD,0x82,0xFF, 0xFD,0x82,0xFF,
+  31          // 4_ 3_ 2 -
+  32          0xFD,0x23,0x7F, 0xFD,0x23,0x7F, 0xFC,0xAC,0xFF, 0xFF,0xFF,0xFF,
+  33          // 2_ 3_ 4 4
+  34          0xFC,0xAC,0x7F, 0xFD,0x23,0x7F, 0xFD,0x34,0xFF, 0xFD,0x34,0xFF,
+  35          // 3_ 2_ 3 1
+  36          0xFD,0x23,0x7F, 0xFC,0xAC,0x7F, 0xFD,0x23,0xFF, 0xFC,0x44,0xFF,
+  37          // 1_ 3_ 2 .5
+  38          0xFC,0x44,0x7F, 0xFD,0x23,0x7F, 0xFC,0xAC,0xFF, 0xFA,0x68,0xFF,
+  39           // .7_ 2_ 1 -
+  40          0xFC,0x0C,0x7F, 0xFC,0xAC,0x7F, 0xFC,0x44,0xFF, 0xFF,0xFF,0xFF,
+  41          0x00//结束
+  42          };
+  43          
+  44          void Init(void); //初始化函数
+  45          void DelayMs(unsigned int time); //毫秒级延时函数
+  46          
+  47          void main()
+  48          {
+  49   1              uchar time;
+  50   1              Init();
+  51   1              TH0 = high;
+  52   1              TL0 = low;
+  53   1              while (1)
+  54   1              {
+  55   2                      if (music[ptr] != 0xFF && music[ptr] != 0x00)//判断是否是正常音符
+C51 COMPILER V8.08   单音音繽                                                              08/15/2015 15:22:41 PAGE 2   
+
+  56   2                      {
+  57   3                              TR0 = 0;
+  58   3                              P2_3 = 1;
+  59   3                              DelayMs(10); //间歇
+  60   3                              TR0 = 1;
+  61   3                              high = music[ptr]; //取设置频率数值的高8 位
+  62   3                              low = music[ptr + 1]; //取设置频率数值的低8 位
+  63   3                              time = music[ptr + 2]; //取发声时间
+  64   3                              DelayMs(time);
+  65   3                              ptr += 3;
+  66   3                      }
+  67   2                      else if (music[ptr] == 0xFF) //判断是否是休止符
+  68   2                      {
+  69   3                              time = music[ptr + 2];
+  70   3                              DelayMs(time);
+  71   3                              ptr += 3;
+  72   3                      }
+  73   2                      
+  74   2                      else //结束符,停止2 秒后继续
+  75   2                      {
+  76   3                              TR0 = 0;
+  77   3                              P2_3 = 1;
+  78   3                              DelayMs(2000);
+  79   3                              ptr = 0;
+  80   3                      }
+  81   2              }
+  82   1      }
+  83          /*********************************************************************************
+  84          * 名称：Count1(void) interrupt 1
+  85          * 功能：设置计时器0 溢出中断,每中断一次改变P2_3 引脚电平
+  86          *********************************************************************************/
+  87          void Count1(void) interrupt 1
+  88          {
+  89   1              TH0 = high;
+  90   1              TL0 = low;
+  91   1              if (flag == 0) //改变P2_3 引脚电平
+  92   1              {
+  93   2                      P2_3 = 0;
+  94   2                      flag = 1;
+  95   2              }
+  96   1              else
+  97   1              {
+  98   2                      P2_3 = 1;
+  99   2                      flag = 0;
+ 100   2              }
+ 101   1      }
+ 102          /*********************************************************************************
+ 103          * 名称：Init()
+ 104          * 功能：设置计数器0 工作方式,16 位计数,溢出中断方式
+ 105          **********************************************************************************/
+ 106          void Init()
+ 107          {
+ 108   1              TMOD = 0x01; //定时器0 处于计时方式,16 位
+ 109   1              EA = 1;
+ 110   1              ET0 = 1; //定时器0 溢出中断
+ 111   1      }
+ 112          /*********************************************************************************
+ 113          * 名称：DelayMs(unsigned int time)
+ 114          * 功能：延时time * 1ms 时间
+ 115          *********************************************************************************/
+ 116          void DelayMs(unsigned int time)
+ 117          {
+C51 COMPILER V8.08   单音音繽                                                              08/15/2015 15:22:41 PAGE 3   
+
+ 118   1              unsigned int i;
+ 119   1              unsigned int j;
+ 120   1              for (j =0; j < time; j++) //每个循环 约 3ms
+ 121   1              {
+ 122   2                      for (i =0; i < 363; i++)
+ 123   2                      {;}
+ 124   2              }
+ 125   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    160    ----
+   CONSTANT SIZE    =     97    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

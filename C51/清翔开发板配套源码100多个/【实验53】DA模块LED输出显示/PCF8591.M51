@@ -1,0 +1,225 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/18/2015  10:36:54  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE PCF8591.obj TO PCF8591 RAMSIZE (256)
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  PCF8591.obj (PCF8591)
+  C:\KEIL\C51\LIB\C51S.LIB (?C_STARTUP)
+
+
+LINK MAP OF MODULE:  PCF8591 (PCF8591)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+            IDATA   0008H     0001H     UNIT         ?STACK
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0003H     ABSOLUTE     
+            CODE    0003H     001EH     UNIT         ?PR?_DELAY1?PCF8591
+            CODE    0021H     001EH     UNIT         ?PR?_WRITE_BYTE?PCF8591
+            CODE    003FH     001AH     UNIT         ?PR?_DAC_WRITE?PCF8591
+            CODE    0059H     0014H     UNIT         ?PR?MAIN?PCF8591
+            CODE    006DH     0011H     UNIT         ?PR?START?PCF8591
+            CODE    007EH     000FH     UNIT         ?PR?RESPONS?PCF8591
+            CODE    008DH     000DH     UNIT         ?PR?STOP?PCF8591
+            CODE    009AH     000CH     UNIT         ?C_C51STARTUP
+            CODE    00A6H     0007H     UNIT         ?PR?INIT?PCF8591
+            CODE    00ADH     0001H     UNIT         ?PR?DELAY?PCF8591
+
+
+
+OVERLAY MAP OF MODULE:   PCF8591 (PCF8591)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+?C_C51STARTUP
+  +--> ?PR?MAIN?PCF8591
+
+?PR?MAIN?PCF8591
+  +--> ?PR?INIT?PCF8591
+  +--> ?PR?_DAC_WRITE?PCF8591
+  +--> ?PR?_DELAY1?PCF8591
+
+?PR?_DAC_WRITE?PCF8591
+  +--> ?PR?START?PCF8591
+  +--> ?PR?RESPONS?PCF8591
+  +--> ?PR?_WRITE_BYTE?PCF8591
+  +--> ?PR?STOP?PCF8591
+
+?PR?START?PCF8591
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  10:36:54  PAGE 2
+
+
+  +--> ?PR?DELAY?PCF8591
+
+?PR?RESPONS?PCF8591
+  +--> ?PR?_WRITE_BYTE?PCF8591
+  +--> ?PR?DELAY?PCF8591
+
+?PR?STOP?PCF8591
+  +--> ?PR?DELAY?PCF8591
+
+
+
+SYMBOL TABLE OF MODULE:  PCF8591 (PCF8591)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        PCF8591
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:0090H         PUBLIC        P1
+  D:00A0H         PUBLIC        P2
+  D:00B0H         PUBLIC        P3
+  D:00A8H         PUBLIC        IE
+  C:0081H         PUBLIC        respons
+  C:00ADH         PUBLIC        delay
+  D:00B8H         PUBLIC        IP
+  C:0059H         PUBLIC        main
+  C:006DH         PUBLIC        start
+  D:0098H         PUBLIC        SCON
+  D:0088H         PUBLIC        TCON
+  C:00A6H         PUBLIC        init
+  B:00A0H.0       PUBLIC        sda
+  C:0003H         PUBLIC        _delay1
+  B:00A0H.1       PUBLIC        scl
+  C:0021H         PUBLIC        _write_byte
+  C:008DH         PUBLIC        stop
+  C:003FH         PUBLIC        _DAC_write
+  D:00C8H         PUBLIC        T2CON
+  D:00D0H         PUBLIC        PSW
+  -------         PROC          DELAY
+  C:00ADH         LINE#         22
+  C:00ADH         LINE#         23
+  -------         ENDPROC       DELAY
+  -------         PROC          _DELAY1
+  D:0006H         SYMBOL        z
+  -------         DO            
+  D:0006H         SYMBOL        x
+  D:0004H         SYMBOL        y
+  -------         ENDDO         
+  C:0003H         LINE#         24
+  C:0003H         LINE#         25
+  C:0003H         LINE#         27
+  C:000CH         LINE#         28
+  C:0020H         LINE#         29
+  -------         ENDPROC       _DELAY1
+  -------         PROC          START
+  C:006DH         LINE#         31
+  C:006DH         LINE#         32
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  10:36:54  PAGE 3
+
+
+  C:006DH         LINE#         33
+  C:006FH         LINE#         34
+  C:0070H         LINE#         35
+  C:0072H         LINE#         36
+  C:0075H         LINE#         37
+  C:0077H         LINE#         38
+  C:007AH         LINE#         39
+  C:007CH         LINE#         40
+  C:007DH         LINE#         41
+  -------         ENDPROC       START
+  -------         PROC          STOP
+  C:008DH         LINE#         42
+  C:008DH         LINE#         43
+  C:008DH         LINE#         44
+  C:008FH         LINE#         45
+  C:0090H         LINE#         46
+  C:0092H         LINE#         47
+  C:0095H         LINE#         48
+  C:0097H         LINE#         49
+  -------         ENDPROC       STOP
+  -------         PROC          L?0025
+  -------         ENDPROC       L?0025
+  -------         PROC          RESPONS
+  C:0081H         LINE#         51
+  C:0081H         LINE#         52
+  C:0081H         LINE#         53
+  C:0083H         LINE#         54
+  C:0084H         LINE#         55
+  C:0086H         LINE#         56
+  C:0089H         LINE#         57
+  C:008BH         LINE#         58
+  C:008CH         LINE#         59
+  -------         ENDPROC       RESPONS
+  -------         PROC          INIT
+  C:00A6H         LINE#         61
+  C:00A6H         LINE#         62
+  C:00A6H         LINE#         63
+  C:00A8H         LINE#         64
+  C:00A9H         LINE#         65
+  C:00ABH         LINE#         66
+  C:00ACH         LINE#         67
+  -------         ENDPROC       INIT
+  -------         PROC          _WRITE_BYTE
+  D:0007H         SYMBOL        dat
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0007H         SYMBOL        temp
+  -------         ENDDO         
+  C:0021H         LINE#         68
+  C:0021H         LINE#         69
+  C:0021H         LINE#         71
+  C:0021H         LINE#         72
+  C:0023H         LINE#         73
+  C:0023H         LINE#         74
+  C:0025H         LINE#         75
+  C:0026H         LINE#         76
+  C:002AH         LINE#         77
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  10:36:54  PAGE 4
+
+
+  C:002EH         LINE#         79
+  C:0030H         LINE#         80
+  C:0032H         LINE#         81
+  C:0033H         LINE#         82
+  C:0037H         LINE#         83
+  C:003BH         LINE#         84
+  C:003DH         LINE#         85
+  C:003EH         LINE#         86
+  -------         ENDPROC       _WRITE_BYTE
+  -------         PROC          _DAC_WRITE
+  D:0005H         SYMBOL        dat
+  C:003FH         LINE#         88
+  C:0041H         LINE#         89
+  C:0041H         LINE#         90
+  C:0044H         LINE#         91
+  C:0046H         LINE#         92
+  C:0049H         LINE#         93
+  C:004BH         LINE#         94
+  C:004EH         LINE#         95
+  C:0053H         LINE#         96
+  C:0056H         LINE#         97
+  -------         ENDPROC       _DAC_WRITE
+  -------         PROC          MAIN
+  -------         DO            
+  D:0003H         SYMBOL        i
+  -------         ENDDO         
+  C:0059H         LINE#         101
+  C:0059H         LINE#         102
+  C:0059H         LINE#         103
+  C:005BH         LINE#         104
+  C:005EH         LINE#         105
+  C:005EH         LINE#         106
+  C:005EH         LINE#         107
+  C:0063H         LINE#         108
+  C:0064H         LINE#         109
+  C:006BH         LINE#         110
+  -------         ENDPROC       MAIN
+  -------         ENDMOD        PCF8591
+
+Program Size: data=9.0 xdata=0 code=174
+LINK/LOCATE RUN COMPLETE.  0 WARNING(S),  0 ERROR(S)

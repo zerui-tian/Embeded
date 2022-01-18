@@ -1,0 +1,15 @@
+<html>
+<body>
+<pre>
+<h1>礦ision3 Build Log</h1>
+<h2>Project:</h2>
+D:\3、开发板配套C实验例程100多个\【实验24】产品数量计数器\jishu.uv2
+Project File Date:  08/15/2015
+
+<h2>Output:</h2>
+Build target 'Target 1'
+compiling jishu.c...
+linking...
+Program Size: data=31.0 xdata=0 code=1787
+creating hex file from "jishu"...
+"jishu" - 0 Error(s), 0 Warning(s).

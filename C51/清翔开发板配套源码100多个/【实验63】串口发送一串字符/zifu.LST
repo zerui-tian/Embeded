@@ -1,0 +1,116 @@
+C51 COMPILER V8.08   ZIFU                                                                  08/18/2015 19:37:15 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE ZIFU
+OBJECT MODULE PLACED IN zifu.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE zifu.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 往串口发送一字节数据（可通过超级终端或者串口调试助手显示出来，
+  12                            超级终端波特率选为9600）。
+  13                            超级终端设置好后，每按下一次S4键，松开后均会在超级终端
+  14                            上显示一串字母"清翔电子开发板是您最好的选择！"。                                                                                  
+  15          * 【使用说明】： 波特率9600  接收的时候请选择文本模式
+  16          *  说明：免费开源，不提供源代码分析.
+  17          **********************************************************************************/
+  18          #include <reg52.h>
+  19          #define jingzhen     11059200UL                  /*使用22.1184M晶体*/    
+  20          #define botelv   9600UL              /*波特率定义为9600*/
+  21          unsigned char zifuchuan[]="清翔电子开发板是您最好的选择！\n";                   //待显示字符。
+  22          volatile unsigned char sending;
+  23          sbit S4=P3^2;
+  24          
+  25          void delay(unsigned char i)
+  26          {
+  27   1              unsigned char j,k;
+  28   1              for(j=i;j>0;j--)
+  29   1                      for(k=90;k>0;k--);
+  30   1      }
+  31          void init(void)                         //串口初始化
+  32          {
+  33   1       EA=0; //暂时关闭中断
+  34   1       TMOD&=0x0F;  //定时器1模式控制在高4位
+  35   1       TMOD|=0x20;    //定时器1工作在模式2，自动重装模式
+  36   1       SCON=0x50;     //串口工作在模式1
+  37   1       TH1=256-jingzhen/(botelv*12*16);  //计算定时器重装值
+  38   1       TL1=256-jingzhen/(botelv*12*16);
+  39   1       PCON|=0x80;    //串口波特率加倍
+  40   1       ES=1;         //串行中断允许
+  41   1       TR1=1;        //启动定时器1
+  42   1       REN=1;        //允许接收 
+  43   1       EA=1;         //允许中断
+  44   1      }
+  45          
+  46          void send(unsigned char d)                //发送一个字节的数据，形参d即为待发送数据。
+  47          {
+  48   1       
+  49   1       SBUF=d; //将数据写入到串口缓冲
+  50   1       sending=1;      //设置发送标志
+  51   1       while(sending); //等待发送完毕
+  52   1      }
+  53          
+  54          void sendc(unsigned char * pd)
+  55          {
+C51 COMPILER V8.08   ZIFU                                                                  08/18/2015 19:37:15 PAGE 2   
+
+  56   1       while((*pd)!='\0') //发送字符串，直到遇到0才结束
+  57   1       {
+  58   2        send(*pd); //发送一个字符
+  59   2        pd++;  //移动到下一个字符
+  60   2       }
+  61   1      }
+  62          
+  63          void main()
+  64          {
+  65   1              init();
+  66   1              while(1)
+  67   1              {
+  68   2                      if(S4==0)
+  69   2                      {
+  70   3                              delay(20);
+  71   3                              if(!S4)
+  72   3                              {
+  73   4                                      while(!S4);                
+  74   4                                      sendc(zifuchuan);
+  75   4                              }
+  76   3                      }
+  77   2              }
+  78   1      }
+  79          
+  80          void uart(void) interrupt 4              //串口发送中断
+  81          {
+  82   1       if(RI)    //收到数据
+  83   1       {
+  84   2        RI=0;   //清中断请求
+  85   2       }
+  86   1       else      //发送完一字节数据
+  87   1       {
+  88   2        TI=0;
+  89   2        sending=0;  //清正在发送标志
+  90   2       }
+  91   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    112    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     33    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

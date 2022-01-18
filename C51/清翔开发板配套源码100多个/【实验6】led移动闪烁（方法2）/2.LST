@@ -1,0 +1,64 @@
+C51 COMPILER V8.08   2                                                                     08/15/2015 12:16:52 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 2
+OBJECT MODULE PLACED IN 2.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 2.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 使八位LED逐位移动并不断循环，该方法采用逐个查表赋值的方法                                                                                  
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include <reg51.h>
+  17          
+  18          
+  19          
+  20          unsigned char table[]={0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0x7f};
+  21          
+  22          void delay(unsigned int i)
+  23          {
+  24   1              unsigned int j;
+  25   1              unsigned char k;
+  26   1              for(j=i;j>0;j--)
+  27   1                      for(k=125;k>0;k--);
+  28   1      }
+  29          
+  30          void main()
+  31          {
+  32   1              while(1)
+  33   1              {
+  34   2                      unsigned char m;
+  35   2                      for(m=0;m<8;m++)
+  36   2                      {
+  37   3                              P1=table[m];
+  38   3                              delay(2000);
+  39   3                      }
+  40   2              }
+  41   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     50    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      8       1
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

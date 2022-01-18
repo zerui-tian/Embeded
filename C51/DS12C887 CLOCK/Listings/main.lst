@@ -1,0 +1,170 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              04/22/2021 10:48:21 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          #include "LCD1602.h"
+   4          
+   5          #define FRAME_LENGTH 16
+   6          
+   7          //variables in ds12c887
+   8          xdata char chSecondsChannel   _at_ 0x8000;
+   9          xdata char chMinutesChannel   _at_ 0x8002;
+  10          xdata char chHoursChannel     _at_ 0x8004;
+  11          xdata char chDofWChannel      _at_ 0x8006;
+  12          xdata char chDateChannel      _at_ 0x8007;
+  13          xdata char chMonthChannel     _at_ 0x8008;
+  14          xdata char chYearChannel      _at_ 0x8009;
+  15          xdata char chRegA             _at_ 0x800A;
+  16          xdata char chRegB             _at_ 0x800B;
+  17          xdata char chRegC             _at_ 0x800C;
+  18          xdata char chRegD             _at_ 0x800D;
+  19          xdata char chCenturyChannel   _at_ 0x8032;
+  20          
+  21          unsigned char time[8];
+  22          unsigned char buffer[FRAME_LENGTH];
+  23          int pBuffer =           0;
+  24          char interruptCounter = 0;
+  25          bit isReceived_Frame =  0;
+  26          bit buzzerFlag =        0;
+  27          bit dotFlag =           0;
+  28          char digit =            0;
+  29          char number[4] =        {0,0,0,0};
+  30          char lastSecond =       0xFF;
+  31          
+  32          unsigned char Bin2BCD(unsigned char bin) {
+  33   1        unsigned char bcd;
+  34   1        bcd = bin % 10;
+  35   1        bcd += ((bin / 10) << 4);
+  36   1        return bcd;
+  37   1      }
+  38          
+  39          void DS12C887_Init(){
+  40   1        chRegA = 0x26; //UIP DV2 DV1 DV0 RS3 RS2 RS1 RS0
+  41   1        chRegB = 0x0A; // SET PIE AIE UIE SQWE DM 24/12 DSE
+  42   1      }
+  43          void DS12C887_GetTime(){
+  44   1        time[0] = chSecondsChannel;
+  45   1        time[1] = chMinutesChannel;
+  46   1        time[2] = chHoursChannel;
+  47   1        time[3] = chDofWChannel;
+  48   1        time[4] = chDateChannel;
+  49   1        time[5] = chMonthChannel;
+  50   1        time[6] = chYearChannel;
+  51   1        time[7] = chCenturyChannel;
+  52   1      }
+  53          
+  54          void DS12C887_SetTime(char* aim){
+C51 COMPILER V9.60.0.0   MAIN                                                              04/22/2021 10:48:21 PAGE 2   
+
+  55   1        unsigned char regB;
+  56   1        
+  57   1        regB = chRegB;
+  58   1        chRegB = regB|0x80;
+  59   1        
+  60   1        chSecondsChannel = Bin2BCD( aim[0] );
+  61   1        chMinutesChannel = Bin2BCD( aim[1] );
+  62   1        chHoursChannel = Bin2BCD( aim[2] );
+  63   1        chDofWChannel = ((aim[6] + (aim[6]>>2) + (aim[7]>>2) - 2*aim[7] + (26*(aim[5]+1)/10) + aim[4] - 1) % 7) +
+             - 1;
+  64   1        chDateChannel = Bin2BCD( aim[4] );
+  65   1        chMonthChannel = Bin2BCD( aim[5] );
+  66   1        chYearChannel = Bin2BCD( aim[6] );
+  67   1        chCenturyChannel = Bin2BCD( aim[7] );
+  68   1        
+  69   1        chRegB = regB;
+  70   1      }
+  71          
+  72          void Command_Analyzer(){
+  73   1        switch(buffer[0]){
+  74   2          case 0x01:
+  75   2            DS12C887_SetTime(buffer+1);
+  76   2            break;
+  77   2          default:
+  78   2            break;
+  79   2        }
+  80   1        isReceived_Frame = 0;
+  81   1        pBuffer = 0;
+  82   1      }
+  83          
+  84          void initializer(){
+  85   1        DS12C887_Init();
+  86   1        LCD1602_Init();
+  87   1        
+  88   1        SCON=0x50;
+  89   1        PCON=0x00;
+  90   1      
+  91   1        TMOD=0x20;
+  92   1        TCON|=0x05;
+  93   1      
+  94   1        
+  95   1        TL1=0xFD;
+  96   1        TH1=0xFD;
+  97   1        TR1=1;
+  98   1      
+  99   1        IP = 0x00;
+ 100   1        
+ 101   1        EX0 = 1;
+ 102   1        ES = 0;
+ 103   1        
+ 104   1        EA = 1;
+ 105   1      }
+ 106          
+ 107          void main(){
+ 108   1        initializer();
+ 109   1        while(1){
+ 110   2        }
+ 111   1      }
+ 112          
+ 113          void EX0_IRQ() interrupt 0{ 
+ 114   1        
+ 115   1        digit=(digit+1)&0x03;
+C51 COMPILER V9.60.0.0   MAIN                                                              04/22/2021 10:48:21 PAGE 3   
+
+ 116   1        
+ 117   1        if(time[0]==lastSecond){
+ 118   2          interruptCounter++;
+ 119   2        }
+ 120   1        else{
+ 121   2          DS12C887_GetTime();
+ 122   2          interruptCounter=0;
+ 123   2        }
+ 124   1        
+ 125   1        P2 = (buzzerFlag?0x80:0x00)|
+ 126   1             (dotFlag   ?0x40:0x00)|
+ 127   1             (digit << 4)|
+ 128   1             (number[digit] & 0x0F);
+ 129   1        
+ 130   1        lastSecond = time[0];
+ 131   1      }
+ 132          
+ 133          void  Byte_Receiver() interrupt 4{
+ 134   1        ES = 0;
+ 135   1        RI = 0;
+ 136   1        buffer[pBuffer++] = SBUF;
+ 137   1        if(pBuffer >= FRAME_LENGTH){
+ 138   2          Command_Analyzer();
+ 139   2        }
+ 140   1        ES = 1;
+ 141   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    615    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     33       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      3    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

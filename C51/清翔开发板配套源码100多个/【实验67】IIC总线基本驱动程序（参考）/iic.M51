@@ -1,0 +1,210 @@
+BL51 BANKED LINKER/LOCATER V6.05                                                        08/18/2015  21:40:16  PAGE 1
+
+
+BL51 BANKED LINKER/LOCATER V6.05, INVOKED BY:
+C:\KEIL\C51\BIN\BL51.EXE iic.obj TO iic
+
+
+MEMORY MODEL: SMALL
+
+
+INPUT MODULES INCLUDED:
+  iic.obj (IIC)
+
+
+LINK MAP OF MODULE:  iic (IIC)
+
+
+            TYPE    BASE      LENGTH    RELOCATION   SEGMENT NAME
+            -----------------------------------------------------
+
+            * * * * * * *   D A T A   M E M O R Y   * * * * * * *
+            REG     0000H     0008H     ABSOLUTE     "REG BANK 0"
+
+            * * * * * * *   C O D E   M E M O R Y   * * * * * * *
+            CODE    0000H     0027H     UNIT         ?PR?READBYTE?IIC
+            CODE    0027H     001EH     UNIT         ?PR?_WRITEBYTE?IIC
+            CODE    0045H     0018H     UNIT         ?PR?CLOCK?IIC
+            CODE    005DH     0012H     UNIT         ?PR?_DELAY1?IIC
+            CODE    006FH     000FH     UNIT         ?PR?START?IIC
+            CODE    007EH     000AH     UNIT         ?PR?INIT?IIC
+            CODE    0088H     000AH     UNIT         ?PR?STOP?IIC
+            CODE    0092H     0008H     UNIT         ?PR?NOP?IIC
+
+
+
+OVERLAY MAP OF MODULE:   iic (IIC)
+
+
+SEGMENT
+  +--> CALLED SEGMENT
+---------------------
+
+
+SYMBOL TABLE OF MODULE:  iic (IIC)
+
+  VALUE           TYPE          NAME
+  ----------------------------------
+
+  -------         MODULE        IIC
+  C:0000H         SYMBOL        _ICE_DUMMY_
+  D:00A0H         PUBLIC        P2
+  C:0045H         PUBLIC        clock
+  B:00D0H.7       PUBLIC        CY
+  C:006FH         PUBLIC        start
+  C:007EH         PUBLIC        init
+  B:00A0H.0       PUBLIC        sda
+  C:005DH         PUBLIC        _delay1
+  B:00A0H.1       PUBLIC        scl
+  C:0088H         PUBLIC        stop
+  C:0097H         PUBLIC        nop
+  C:0000H         PUBLIC        readbyte
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  21:40:16  PAGE 2
+
+
+  C:0027H         PUBLIC        _writebyte
+  C:0092H         SYMBOL        L?0024
+  -------         PROC          L?0023
+  -------         ENDPROC       L?0023
+  C:0092H         SYMBOL        L?0024
+  -------         PROC          NOP
+  C:0097H         LINE#         24
+  C:0097H         LINE#         25
+  C:0097H         LINE#         26
+  C:0098H         LINE#         27
+  C:0099H         LINE#         28
+  -------         ENDPROC       NOP
+  -------         PROC          _DELAY1
+  D:0006H         SYMBOL        m
+  -------         DO            
+  D:0004H         SYMBOL        n
+  -------         ENDDO         
+  C:005DH         LINE#         30
+  C:005DH         LINE#         31
+  C:005DH         LINE#         32
+  C:006EH         LINE#         33
+  -------         ENDPROC       _DELAY1
+  -------         PROC          INIT
+  C:007EH         LINE#         35
+  C:007EH         LINE#         36
+  C:007EH         LINE#         37
+  C:0080H         LINE#         38
+  C:0083H         LINE#         39
+  C:0085H         LINE#         40
+  -------         ENDPROC       INIT
+  -------         PROC          START
+  C:006FH         LINE#         43
+  C:006FH         LINE#         44
+  C:006FH         LINE#         45
+  C:0071H         LINE#         46
+  C:0071H         LINE#         47
+  C:0071H         LINE#         48
+  C:0074H         LINE#         49
+  C:0076H         LINE#         50
+  C:0079H         LINE#         51
+  C:007BH         LINE#         52
+  -------         ENDPROC       START
+  -------         PROC          STOP
+  C:0088H         LINE#         55
+  C:0088H         LINE#         56
+  C:0088H         LINE#         57
+  C:008AH         LINE#         58
+  C:008AH         LINE#         59
+  C:008AH         LINE#         60
+  C:008DH         LINE#         61
+  C:008FH         LINE#         62
+  -------         ENDPROC       STOP
+  -------         PROC          _WRITEBYTE
+  D:0007H         SYMBOL        j
+  -------         DO            
+  D:0006H         SYMBOL        i
+  D:0007H         SYMBOL        temp
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  21:40:16  PAGE 3
+
+
+  -------         ENDDO         
+  C:0027H         LINE#         65
+  C:0027H         LINE#         66
+  C:0027H         LINE#         68
+  C:0027H         LINE#         69
+  C:0029H         LINE#         70
+  C:0029H         LINE#         71
+  C:002DH         LINE#         72
+  C:002FH         LINE#         73
+  C:0032H         LINE#         74
+  C:0034H         LINE#         75
+  C:0034H         LINE#         76
+  C:0034H         LINE#         77
+  C:0037H         LINE#         78
+  C:003BH         LINE#         79
+  C:003DH         LINE#         80
+  C:0040H         LINE#         81
+  C:0042H         LINE#         82
+  -------         ENDPROC       _WRITEBYTE
+  -------         PROC          READBYTE
+  -------         DO            
+  D:0005H         SYMBOL        i
+  D:0007H         SYMBOL        j
+  D:0006H         SYMBOL        k
+  -------         ENDDO         
+  C:0000H         LINE#         85
+  C:0000H         LINE#         86
+  C:0000H         LINE#         87
+  C:0002H         LINE#         88
+  C:0009H         LINE#         89
+  C:000AH         LINE#         90
+  C:000AH         LINE#         91
+  C:000DH         LINE#         92
+  C:0010H         LINE#         93
+  C:0014H         LINE#         95
+  C:0016H         LINE#         96
+  C:001BH         LINE#         97
+  C:001DH         LINE#         98
+  C:0021H         LINE#         99
+  C:0024H         LINE#         100
+  C:0026H         LINE#         101
+  -------         ENDPROC       READBYTE
+  -------         PROC          CLOCK
+  -------         DO            
+  D:0007H         SYMBOL        i
+  -------         ENDDO         
+  C:0045H         LINE#         103
+  C:0045H         LINE#         104
+  C:0045H         LINE#         105
+  C:0047H         LINE#         106
+  C:0049H         LINE#         107
+  C:004CH         LINE#         108
+  C:0055H         LINE#         109
+  C:0058H         LINE#         110
+  C:005AH         LINE#         111
+  -------         ENDPROC       CLOCK
+  -------         ENDMOD        IIC
+BL51 BANKED LINKER/LOCATER V6.05                                                      08/18/2015  21:40:16  PAGE 4
+
+
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DELAY1?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?INIT?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?START?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?STOP?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_WRITEBYTE?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?READBYTE?IIC
+
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?CLOCK?IIC
+
+*** WARNING L10: CANNOT DETERMINE ROOT SEGMENT
+
+Program Size: data=8.0 xdata=0 code=154
+LINK/LOCATE RUN COMPLETE.  8 WARNING(S),  0 ERROR(S)

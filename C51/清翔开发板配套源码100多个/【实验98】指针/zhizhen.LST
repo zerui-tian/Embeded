@@ -1,0 +1,54 @@
+C51 COMPILER V8.08   ZHIZHEN                                                               08/19/2015 11:41:51 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE ZHIZHEN
+OBJECT MODULE PLACED IN zhizhen.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE zhizhen.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：本程序用来演示指针的用法。
+  17          ****************************************************************************/
+  18          #include <reg52.h>
+  19          
+  20          void main()
+  21          {
+  22   1              unsigned char m,n;       //定义无符号字符型数据
+  23   1              unsigned char *j,*k;//定义无符号字符型指针变量
+  24   1              m=2;
+  25   1              n=3;
+  26   1              j=&m;   //使指针变量指向m，对指针j初始化，&为对某个变量取地址的运算符。
+  27   1              k=&n;   //使指针变量指向n，对指针k初始化
+  28   1              P1=*j+*k; //这样，对指针的操作其实就是对指针所指向对象的操作。
+  29   1                                //*j+*k即相当与m+n，结果为5，然后送给P1口二进制值00000101
+  30   1              while(1);
+  31   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     39    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,225 @@
+C51 COMPILER V8.08   0                                                                     08/18/2015 21:41:14 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 0
+OBJECT MODULE PLACED IN 0.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 0.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * ¡¾±àÐ´Ê±¼ä¡¿£º 2014Äê3ÔÂ5ÈÕ
+   3          * ¡¾×÷    Õß¡¿£º ÇåÏèµç×Ó:03
+   4          * ¡¾°æ    ±¾¡¿£º 1.0
+   5          * ¡¾Íø    Õ¾¡¿£º http://www.qxmcu.com/ 
+   6          * ¡¾ÌÔ±¦µêÆÌ¡¿£º http://qxmcu.taobao.com/ 
+   7          * ¡¾ÊµÑéÆ½Ì¨¡¿£º QX-MCS51 µ¥Æ¬»ú¿ª·¢°å
+   8          * ¡¾Íâ²¿¾§Õñ¡¿£º 11.0592mhz     
+   9          * ¡¾Ö÷¿ØÐ¾Æ¬¡¿£º STC89C52
+  10          * ¡¾±àÒë»·¾³¡¿£º Keil ¦ÌVisio3  
+  11          * ¡¾³ÌÐò¹¦ÄÜ¡¿£º ÏòIIC×ÜÏßÆ÷¼þ24c02EEPROMÖÐµØÖ·Îª0µÄ´æ´¢µ¥ÔªÖÐÐ´ÈëÊý¾Ý0xaa
+  12                                  ²¢½«Æä¶Á³ö²¢ËÍÈëP1¿Ú£¬¿É¹Û²ìµ½P1¿ÚÏàÁ¬µÄLED½»Ìæ±»µãÁÁ¡£
+  13                                  Ö÷ÒªÎªÁËÁ·Ï°IIC×ÜÏßµÄÇý¶¯³ÌÐòÒÔ¼°24C02µÄ²Ù×÷·½·¨¡£                                                                                  
+  14          * ¡¾Ê¹ÓÃËµÃ÷¡¿£º 
+  15          *  ËµÃ÷£ºÃâ·Ñ¿ªÔ´£¬²»Ìá¹©Ô´´úÂë·ÖÎö.
+  16          **********************************************************************************/
+  17          //ÊÔÑéAT24C02EEPROMÐ¾Æ¬³ÌÐò
+  18          
+  19          #include<reg51.h>
+  20          #include <intrins.h>
+  21          #define uint unsigned int
+  22          #define uchar unsigned char
+  23          sbit sda=P2^0;                          //IO¿Ú¶¨Òå
+  24          sbit scl=P2^1;
+  25          
+  26          //´ËÎª´ýÐ´Èë24c02µÄÊý¾Ý¡£ÎªÁË±ãÓÚÑéÖ¤½á¹û£¬Êý×éµÄÄÚÈÝÎªÖÜÆÚÖØ¸´µÄ¡£
+  27          char code music[] = {
+  28          0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,
+  29          0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,
+  30          0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,
+  31          0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,
+  32          0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0,0x55,0xaa,0x0f,0xf0
+  33          };       //ÓÉÓÚ×îºó»¹Òª½²ÕâÐ©Êý¾Ý¶Á³öËÍµ½P1¿Ú£¬¹Ê¿É·¢ÏÖP1¿ÚÏàÁ¬µÄledÓÐ¹æÂÉµØÉÁË¸15¸öÖÜÆÚ
+  34          
+  35          uchar data buffer[100]; //ÓÃÓÚ»º´æ´Ó24c02ÖÐ¶ÁÈ¡µÄÊý¾Ý¡£
+  36                                           
+  37          delay(unsigned int m)
+  38          {
+  39   1              unsigned int n,p;
+  40   1              for(n=m;n>0;n--)
+  41   1                      for(p=125;p>0;p--);
+  42   1      }
+  43          void nop()
+  44          {
+  45   1              _nop_();
+  46   1              _nop_();
+  47   1      }
+  48          /////////24C02¶ÁÐ´Çý¶¯³ÌÐò////////////////////
+  49          void delay1(unsigned int m)
+  50          {       unsigned int n;
+  51   1              for(n=0;n<m;n++);
+  52   1      }
+  53          
+  54          void init()  //24c02³õÊ¼»¯×Ó³ÌÐò
+  55          {
+C51 COMPILER V8.08   0                                                                     08/18/2015 21:41:14 PAGE 2   
+
+  56   1              scl=1;
+  57   1              nop();
+  58   1              sda=1;
+  59   1              nop();
+  60   1      }
+  61          
+  62          void start()        //Æô¶¯I2C×ÜÏß
+  63          {
+  64   1              sda=1;
+  65   1              nop();
+  66   1              scl=1;
+  67   1              nop();
+  68   1              sda=0;
+  69   1              nop();
+  70   1              scl=0;
+  71   1              nop();
+  72   1      }
+  73          
+  74          void stop()         //Í£Ö¹I2C×ÜÏß
+  75          {
+  76   1              sda=0;
+  77   1              nop();
+  78   1              scl=1;
+  79   1              nop();
+  80   1              sda=1;
+  81   1              nop();
+  82   1      }
+  83          
+  84          void writebyte(unsigned char j)  //Ð´Ò»¸ö×Ö½Ú
+  85          {
+  86   1              unsigned char i,temp;
+  87   1              temp=j;
+  88   1              for (i=0;i<8;i++)
+  89   1         {
+  90   2                 temp=temp<<1;
+  91   2                 scl=0;
+  92   2                 nop();
+  93   2                 sda=CY;              //temp×óÒÆÊ±£¬ÒÆ³öµÄÖµ·ÅÈëÁËCYÖÐ
+  94   2                 nop();
+  95   2                 scl=1;               //´ýsdaÏßÉÏµÄÊý¾ÝÎÈ¶¨ºó£¬½«sclÀ­¸ß
+  96   2                 nop();
+  97   2         }
+  98   1         scl=0;
+  99   1         nop();
+ 100   1         sda=1;
+ 101   1         nop();
+ 102   1      }
+ 103          
+ 104          unsigned char readbyte()   //¶ÁÒ»¸ö×Ö½Ú
+ 105          {
+ 106   1         unsigned char i,j,k=0;
+ 107   1         scl=0; nop(); sda=1;
+ 108   1         for (i=0;i<8;i++)
+ 109   1         {  
+ 110   2                      nop(); scl=1; nop();
+ 111   2              if(sda==1) 
+ 112   2                      j=1;
+ 113   2              else
+ 114   2                      j=0;
+ 115   2              k=(k<<1)|j;
+ 116   2                      scl=0;
+ 117   2              }
+C51 COMPILER V8.08   0                                                                     08/18/2015 21:41:14 PAGE 3   
+
+ 118   1              nop();
+ 119   1              return(k);
+ 120   1      }
+ 121          
+ 122          void clock()         //I2C×ÜÏßÊ±ÖÓ
+ 123          {
+ 124   1         unsigned char i=0;
+ 125   1         scl=1;
+ 126   1         nop();
+ 127   1         while((sda==1)&&(i<255))
+ 128   1                i++;
+ 129   1         scl=0;
+ 130   1         nop();
+ 131   1      }
+ 132          
+ 133          ////////´Ó24c02µÄµØÖ·addressÖÐ¶ÁÈ¡Ò»¸ö×Ö½ÚÊý¾Ý/////
+ 134          unsigned char read24c02(unsigned char address)
+ 135          {
+ 136   1         unsigned char i;
+ 137   1         start();
+ 138   1         writebyte(0xa0);
+ 139   1         clock();
+ 140   1         writebyte(address);
+ 141   1         clock();
+ 142   1         start();
+ 143   1         writebyte(0xa1);
+ 144   1         clock();
+ 145   1         i=readbyte();
+ 146   1         stop();
+ 147   1         delay1(100);
+ 148   1         return(i);
+ 149   1      }
+ 150          
+ 151          //////Ïò24c02µÄaddressµØÖ·ÖÐÐ´ÈëÒ»×Ö½ÚÊý¾Ýinfo/////
+ 152          void write24c02(unsigned char address,unsigned char info)
+ 153          {
+ 154   1         start();
+ 155   1         writebyte(0xa0);
+ 156   1         clock();
+ 157   1         writebyte(address);
+ 158   1         clock();
+ 159   1         writebyte(info);
+ 160   1         clock();
+ 161   1         stop();
+ 162   1         delay1(5000); //Õâ¸öÑÓÊ±Ò»¶¨Òª×ã¹»³¤£¬·ñÔò»á³ö´í¡£ÒòÎª24c02ÔÚ´ÓsdaÉÏÈ¡µÃÊý¾Ýºó£¬»¹ÐèÒªÒ»¶¨Ê±¼äµÄÉÕÂ¼¹ý³
+             -Ì¡£
+ 163   1      }
+ 164          
+ 165          void main()
+ 166          {
+ 167   1              uchar add,i,j,m;
+ 168   1              init();        //³õÊ¼»¯24C02
+ 169   1              P1=0X55;
+ 170   1              while(add!=sizeof(music))
+ 171   1              {
+ 172   2                      write24c02(0x00+add,music[add]);
+ 173   2                      add++;
+ 174   2                      if(add%4==0)
+ 175   2                      P1=~P1;
+ 176   2              }
+ 177   1              P1=0X00;
+ 178   1      //µ½´ËÎªÖ¹£¬Ïò24C02ÖÐÐ´ÈëÊý¾ÝµÄ¹ý³Ì¾ùÒÑ½áÊø¡£ÏÂÃæµÄ³ÌÐòÎª¸½¼ÓµÄ¡£
+C51 COMPILER V8.08   0                                                                     08/18/2015 21:41:14 PAGE 4   
+
+ 179   1      //½«ÒÑÐ´ÈëµÄÊý¾ÝÔÙ¶Á³ö£¬ËÍµ½P1¿Ú£¬Í¨¹ý¹Û²ìledµÄÁÁÃðÀ´¼ìÑéÐ´ÈëµÄÊý¾ÝÊÇ·ñÕýÈ·¡£
+ 180   1              while(m!=add)
+ 181   1              {
+ 182   2                      buffer[i]=read24c02(m);
+ 183   2                      i++;
+ 184   2                      m++;
+ 185   2              }
+ 186   1              
+ 187   1              while(j!=add)
+ 188   1              {
+ 189   2                      P1=buffer[j];
+ 190   2                      j++;
+ 191   2                      delay(1000);
+ 192   2              }
+ 193   1              while(1);
+ 194   1      }
+ 195          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    353    ----
+   CONSTANT SIZE    =     60    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =    100       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

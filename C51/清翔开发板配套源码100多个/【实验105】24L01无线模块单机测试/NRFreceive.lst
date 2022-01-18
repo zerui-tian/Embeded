@@ -1,0 +1,143 @@
+C51 COMPILER V8.08   NRFRECEIVE                                                            08/19/2015 12:54:25 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE NRFRECEIVE
+OBJECT MODULE PLACED IN NRFreceive.obj
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE NRF\NRFreceive.c BROWSE DEBUG OBJECTEXTEND PRINT(.\NRFreceive.lst) OBJECT(N
+                    -RFreceive.obj)
+
+line level    source
+
+   1          
+   2          #include "reg52.h"      /*包含STC单片机头文件*/
+   3          #include "QX51/qx51.h" /*包含qx51开发板头文件*/
+   4          #include "DELAY/delay.h"/*包含delay延时函数文件*/
+   5          #include "NRFreceive.h"//包涵NRF驱动
+   6          
+   7          uchar const TX_ADDRESS[TX_ADR_WIDTH]  = {0x34,0x43,0x10,0x10,0x01}; // Define a static TX address
+   8          uchar rx_buf[TX_PLOAD_WIDTH];
+   9          uchar tx_buf[TX_PLOAD_WIDTH];
+  10          
+  11          /**************************************************/
+  12          uchar   bdata sta;
+  13          sbit    RX_DR   =sta^6;
+  14          sbit    TX_DS   =sta^5;
+  15          sbit    MAX_RT  =sta^4; 
+  16          /*************************************************/
+  17           //NRF24L01+
+  18          
+  19          uchar SPI_RW(uchar dat)//写一字节并读出此地址的状态
+  20           {
+  21   1              uchar i;
+  22   1              for(i=0;i<8;i++)
+  23   1              {
+  24   2                      SCK=0;
+  25   2                      MOSI=(dat & 0x80);
+  26   2                      dat<<=1;
+  27   2                      SCK=1;
+  28   2                      dat|=MISO;              
+  29   2              }
+  30   1              SCK=0;     //拉低时钟保持通信状态
+  31   1              return dat;
+  32   1       }
+  33          uchar SPI_RW_Reg(uchar reg,value)//写一字节并读出此地址的状态
+  34           {
+  35   1              uchar status;
+  36   1              CSN=0;
+  37   1              status=SPI_RW(reg);
+  38   1              SPI_RW(value);
+  39   1              CSN=1;
+  40   1              return status;
+  41   1       }
+  42          uchar SPI_Read(uchar reg)  //读一字节
+  43          {
+  44   1              uchar value;
+  45   1              CSN=0;
+  46   1              SPI_RW(reg);
+  47   1              value=SPI_RW(0);
+  48   1              CSN=1;
+  49   1              return value;
+  50   1      }
+  51          uchar SPI_Read_Buf(uchar reg,uchar *pBuf,uchar uchars)//读多个字节并读出此地址的状态
+  52          {
+  53   1              uchar status,i;
+  54   1              CSN=0;
+C51 COMPILER V8.08   NRFRECEIVE                                                            08/19/2015 12:54:25 PAGE 2   
+
+  55   1              status=SPI_RW(reg);
+  56   1              for(i=0;i<uchars;i++)
+  57   1              pBuf[i]=SPI_RW(0);
+  58   1              CSN=1;
+  59   1              return status;  
+  60   1      }
+  61          uchar SPI_write_Buf(uchar reg,uchar *pBuf,uchar uchars)//写多个字节并读出此地址的状态
+  62          {
+  63   1              uchar status,i;
+  64   1              CSN=0;
+  65   1              status=SPI_RW(reg);
+  66   1              for(i=0;i<uchars;i++)
+  67   1              SPI_RW(*pBuf++);
+  68   1              CSN=1;
+  69   1              return status;
+  70   1      }/*
+  71          void nrf24l01_TXBUF(uchar *tx_buf) //发送tx_buf中的数据
+  72          {
+  73                  CE=0;//停止射频工作
+  74                  SPI_write_Buf(0x20+10,0x01,5);//写本机地址
+  75                  SPI_write_Buf(0x20+10,0x01,5);//装载接收端O通道地址
+  76                  SPI_write_Buf(0xa0,tx_buf,2);//装载要发送的数据
+  77                  SPI_RW_Reg(0x20+0x00,0x0e);//IRQ收发完成中断响应16位CRC，发送模式
+  78                  CE=1; //置高CE，激发数据发射
+  79                  delay(1);
+  80          } */
+  81          void nrf24l01_init()
+  82          {
+  83   1              NRF_CE=0;
+  84   1              CSN=1;
+  85   1              SCK=0;
+  86   1              IRQ=1;
+  87   1              delay8us();
+  88   1              delay8us();
+  89   1      }
+  90          void setRX_Mode()
+  91          {
+  92   1              NRF_CE=0;
+  93   1              SPI_write_Buf(WRITE_REG + RX_ADDR_P0, TX_ADDRESS, TX_ADR_WIDTH); // 写接收地址到0通道
+  94   1              SPI_RW_Reg(WRITE_REG + EN_AA, 0x00);      // Enable Auto.Ack:Pipe0
+  95   1              SPI_RW_Reg(WRITE_REG + EN_RXADDR, 0x01);  // Enable Pipe0
+  96   1              SPI_RW_Reg(WRITE_REG + RF_CH,40);        // Select 工作频段 channel 2.4G
+  97   1              SPI_RW_Reg(WRITE_REG + RX_PW_P0, TX_PLOAD_WIDTH); // Select same RX payload width as TX Payload width
+  98   1              SPI_RW_Reg(WRITE_REG + RF_SETUP, 0x07);   // TX_PWR:0dBm, Datarate:2Mbps, LNA:HCURR
+  99   1              SPI_RW_Reg(WRITE_REG + CONFIG, 0x0f);     //IRQ中断响应16位CRC校验，接收模式
+ 100   1      
+ 101   1              NRF_CE = 1; // Set CE pin high to enable RX device
+ 102   1              delay_ms(1);
+ 103   1      }
+ 104          uchar nRF24L01_RxPacket(uchar *rx_buf)
+ 105          {
+ 106   1              uchar flag=0;
+ 107   1              sta=SPI_Read(STATUS);   // read register STATUS's value
+ 108   1              if(RX_DR)                               // if receive data ready (RX_DR) interrupt
+ 109   1              {
+ 110   2                      SPI_Read_Buf(RD_RX_PLOAD,rx_buf,TX_PLOAD_WIDTH);// read receive payload from RX_FIFO buffer
+ 111   2                      flag=1;
+ 112   2                      SPI_RW_Reg(WRITE_REG+STATUS,0xff);//清空状态寄存器
+ 113   2              }               
+ 114   1              return flag;
+ 115   1      }
+
+C51 COMPILER V8.08   NRFRECEIVE                                                            08/19/2015 12:54:25 PAGE 3   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    283    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     26      13
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

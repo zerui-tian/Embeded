@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\LCD1602.obj" 
+TO ".\Objects\frequency_meter" 
+PRINT(".\Listings\frequency_meter.m51") RAMSIZE(256) 

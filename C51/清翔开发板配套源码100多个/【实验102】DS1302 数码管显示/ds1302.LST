@@ -1,0 +1,255 @@
+C51 COMPILER V8.08   DS1302                                                                08/19/2015 12:05:33 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN ds1302.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ds1302.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 数码管显示DS1302芯片走时                           
+  12          * 【使用说明】： 使用前是用杜邦线分别把DS1302旁边3个脚的排针与P1口的0~2接相接
+  13          接线方式是 请看开饭背面有丝印
+  14                                                  TSCLK  -  P10
+  15                                                  TIO    -  P11
+  16                                                  TRST   -  P12
+  17                                                  程序时间被设定为15.10.30
+  18          *  说明：免费开源，不提供源代码分析.
+  19          **********************************************************************************/
+  20          #include<reg52.h>
+  21          #include<intrins.h>
+  22          #define uchar unsigned char
+  23          #define uint unsigned int
+  24          sbit sclk = P1^0;
+  25          sbit dio = P1^1;
+  26          sbit ce = P1^2;
+  27          sbit wela = P2^7;
+  28          sbit dula = P2^6;
+  29          void delay(uint z)
+  30          {
+  31   1              uint x,y;
+  32   1              for(x=z;x>0;x--)
+  33   1                      for(y=120;y>0;y--);
+  34   1      }
+  35          uchar code table[]={ 
+  36           
+  37                          0x3F,  //"0"
+  38                          0x06,  //"1"
+  39                          0x5B,  //"2"
+  40                          0x4F,  //"3"
+  41                          0x66,  //"4"
+  42                          0x6D,  //"5"
+  43                          0x7D,  //"6"
+  44                          0x07,  //"7"
+  45                          0x7F,  //"8"
+  46                          0x6F,  //"9"
+  47                          0x77,  //"A"
+  48                          0x7C,  //"B"
+  49                          0x39,  //"C"
+  50                          0x5E,  //"D"
+  51                          0x79,  //"E"
+  52                          0x71,  //"F"
+  53                          0x76,  //"H"
+  54                          0x38,  //"L"
+  55                          0x37,  //"n"
+C51 COMPILER V8.08   DS1302                                                                08/19/2015 12:05:33 PAGE 2   
+
+  56                          0x3E,  //"u"
+  57                          0x73,  //"P"
+  58                          0x5C,  //"o"
+  59                          0x40,  //"-"
+  60                          0x00,  //熄灭
+  61                          0x00  //自定义
+  62           
+  63                                   };
+  64          void display(uchar hour10,hour,minute10,minute,second10,second)
+  65          {
+  66   1              dula=1;
+  67   1              P0=table[hour10];
+  68   1              dula=0;
+  69   1              P0=0xff;
+  70   1              wela=1;
+  71   1              P0=0xfe;
+  72   1              wela=0;
+  73   1              delay(1);
+  74   1      
+  75   1              dula=1;
+  76   1              P0=table[hour]|0x80;
+  77   1              dula=0;
+  78   1              P0=0xff;
+  79   1              wela=1;
+  80   1              P0=0xfd;
+  81   1              wela=0;
+  82   1              delay(1);
+  83   1      
+  84   1              dula=1;
+  85   1              P0=table[minute10];
+  86   1              dula=0;
+  87   1              P0=0xff;
+  88   1              wela=1;
+  89   1              P0=0xfb;
+  90   1              wela=0;
+  91   1              delay(1);
+  92   1      
+  93   1              dula=1;
+  94   1              P0=table[minute]|0x80;
+  95   1              dula=0;
+  96   1              P0=0xff;
+  97   1              wela=1;
+  98   1              P0=0xf7;
+  99   1              wela=0;
+ 100   1              delay(1);
+ 101   1      
+ 102   1              dula=1;
+ 103   1              P0=table[second10];
+ 104   1              dula=0;
+ 105   1              P0=0xff;
+ 106   1              wela=1;
+ 107   1              P0=0xef;
+ 108   1              wela=0;
+ 109   1              delay(1);
+ 110   1      
+ 111   1              dula=1;
+ 112   1              P0=table[second];
+ 113   1              dula=0;
+ 114   1              P0=0xff;
+ 115   1              wela=1;
+ 116   1              P0=0xdf;
+ 117   1              wela=0;
+C51 COMPILER V8.08   DS1302                                                                08/19/2015 12:05:33 PAGE 3   
+
+ 118   1              delay(1);
+ 119   1      }
+ 120          void write_1302(uchar add,dat)
+ 121          {
+ 122   1              uchar i,temp;
+ 123   1              temp=add;
+ 124   1              ce=0;
+ 125   1              _nop_();
+ 126   1              sclk=0;
+ 127   1              _nop_();
+ 128   1              ce=1;
+ 129   1              _nop_();
+ 130   1              for(i=0;i<8;i++)
+ 131   1              {
+ 132   2                      sclk=0;
+ 133   2                      _nop_();
+ 134   2                      if((temp&0x01)==0x01)
+ 135   2                              dio=1;
+ 136   2                              else
+ 137   2                              dio=0;
+ 138   2                      temp>>=1;
+ 139   2                      sclk=1;
+ 140   2                      _nop_();
+ 141   2              }
+ 142   1              temp=dat;
+ 143   1              for(i=0;i<8;i++)
+ 144   1              {
+ 145   2                      sclk=0;
+ 146   2                      _nop_();
+ 147   2                      if((temp&0x01)==0x01)
+ 148   2                              dio=1;
+ 149   2                              else
+ 150   2                              dio=0;
+ 151   2                      temp>>=1;
+ 152   2                      sclk=1;
+ 153   2                      _nop_();
+ 154   2              }
+ 155   1              ce=0;
+ 156   1              sclk=0;
+ 157   1      }
+ 158          uchar read_1302(uchar add)
+ 159          {
+ 160   1              uchar dat,dat1,i,temp;
+ 161   1              temp=add;
+ 162   1              ce=0;
+ 163   1              _nop_();
+ 164   1              sclk=0;
+ 165   1              _nop_();
+ 166   1              ce=1;
+ 167   1              for(i=0;i<8;i++)
+ 168   1              {
+ 169   2                      sclk=0;
+ 170   2                      _nop_();
+ 171   2                      if((temp&0x01)==0x01)
+ 172   2                              dio=1;
+ 173   2                              else
+ 174   2                              dio=0;
+ 175   2                      temp>>=1;
+ 176   2                      sclk=1;
+ 177   2                      _nop_();
+ 178   2              }
+ 179   1              for(i=0;i<8;i++)
+C51 COMPILER V8.08   DS1302                                                                08/19/2015 12:05:33 PAGE 4   
+
+ 180   1              {
+ 181   2                      sclk=0;
+ 182   2                      _nop_();
+ 183   2                      if(dio)
+ 184   2                          dat|=0x80;
+ 185   2                      if(i<7)
+ 186   2                              dat>>=1;
+ 187   2                      sclk=1;
+ 188   2              }
+ 189   1              dat1=dat/16;
+ 190   1              dat=dat%16;
+ 191   1              dat=dat1*10+dat;  
+ 192   1              ce=0;
+ 193   1              sclk=0;
+ 194   1              return dat;
+ 195   1      }
+ 196          void main()
+ 197          {
+ 198   1              uchar hour,minute,second;       
+ 199   1              write_1302(0x8e,0x00);
+ 200   1      
+ 201   1              write_1302(0xc0,0xfe);
+ 202   1              write_1302(0xc2,0xff);
+ 203   1              
+ 204   1              write_1302(0x80,0x30);
+ 205   1      
+ 206   1              write_1302(0x82,0x10);
+ 207   1              
+ 208   1              write_1302(0x84,0x15); 
+ 209   1              
+ 210   1              write_1302(0x8e,0x80);  
+ 211   1              while(1)
+ 212   1              {
+ 213   2                      write_1302(0x8e,0x00);
+ 214   2                      hour=read_1302(0x85);
+ 215   2                      
+ 216   2                      minute=read_1302(0x83);
+ 217   2                      
+ 218   2                      second=read_1302(0x81); 
+ 219   2      
+ 220   2                      //r=read_1302(0xc1);
+ 221   2              //      r1=read_1302(0xc3);
+ 222   2                      write_1302(0x8e,0x80);
+ 223   2                      display(hour/10,hour%10,minute/10,minute%10,second/10,second%10);
+ 224   2                      //display(r/100,r%100/10,r%100%10,r1/100,r1%100/10,r1%100%10);          
+ 225   2              }
+ 226   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    522    ----
+   CONSTANT SIZE    =     25    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      13
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,4 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj" 
+TO ".\Objects\radio clock" 
+PRINT(".\Listings\radio clock.m51") RAMSIZE(256) 

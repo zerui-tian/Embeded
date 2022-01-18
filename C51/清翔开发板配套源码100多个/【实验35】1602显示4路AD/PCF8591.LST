@@ -1,0 +1,52 @@
+C51 COMPILER V8.08   PCF8591                                                               09/09/2015 11:30:21 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE PCF8591
+OBJECT MODULE PLACED IN PCF8591.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE PCF8591.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "qxmcs51_config.h"
+   2          #include "delay.h"
+   3          #include "IIC.h"
+   4          #include "PCF8591.H"
+   5          
+   6          #define DAC_EN 0x40
+   7          #define ADC_AutoINC 0x04
+   8          /*AD¶ÁÊý¾Ý*/
+   9          BOOL I2C_ADC_ReadData(uchar ADDR, uchar *ADC_Value)
+  10          {
+  11   1              I2C_Start();
+  12   1              I2C_send_byte(PCF8591_ADDR + 0);
+  13   1              if (!Test_ACK())
+  14   1              {
+  15   2                      return(0);
+  16   2              }
+  17   1              I2C_send_byte(ADDR);
+  18   1              Master_ACK(0);
+  19   1              I2C_Start();
+  20   1              I2C_send_byte(PCF8591_ADDR + 1);
+  21   1              if (!Test_ACK())
+  22   1              {
+  23   2                      return(0);
+  24   2              }
+  25   1              *ADC_Value = I2C_read_byte();
+  26   1              Master_ACK(0);
+  27   1              I2C_Stop();
+  28   1              return(1);      
+  29   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     69    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       4
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

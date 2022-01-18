@@ -1,0 +1,64 @@
+C51 COMPILER V8.08   YSF                                                                   08/19/2015 11:38:22 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE YSF
+OBJECT MODULE PLACED IN ysf.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE ysf.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：      比较循环移位与非循环移位。程序中，P1=m<<2;为非循环移位。
+  17                                  P1=_crol_(m,2);为循环移位。注意观察P1口相连的各发光led的亮灭变化，
+  18                                  进而比较两者间的差异。
+  19                                  当按键S2没有被按下时，执行的为循环移位；当按下时，执行非循环移位。
+  20          ****************************************************************************/
+  21          #include <reg52.h>
+  22          #include <intrins.h>
+  23          
+  24          sbit s2=P3^0;
+  25          
+  26          void main()
+  27          {
+  28   1              
+  29   1              unsigned char m=0xf3;
+  30   1              while(1)
+  31   1              {
+  32   2                      if(s2==0)
+  33   2                              P1=m<<2;//将左移运算结果送P1口,此运算符为不循环移动，即移出的数据将丢失，而后面的将补零
+  34   2                      else
+  35   2                              P1=_crol_(m,2);//这个为循环移位，即移出的那些位将被送入到低位。
+  36   2                                         //但是注意，调用这个_crol_(,)之前，要在头文件中包含intrins.h。
+  37   2               }
+  38   1      }
+  39          /*另外，>>为非循环右移运算符。而_cror_（，）为循环右移函数。
+  40            其包含于intrins.h头文件中，该文件还包含有其他移位函数，
+  41            有兴趣的同学可以查阅相关资料。*/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     29    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

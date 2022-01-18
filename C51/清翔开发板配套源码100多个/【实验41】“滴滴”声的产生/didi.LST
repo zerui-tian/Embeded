@@ -1,0 +1,87 @@
+C51 COMPILER V8.08   DIDI                                                                  08/15/2015 20:04:26 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE DIDI
+OBJECT MODULE PLACED IN didi.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE didi.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 本程序延时用定时器的方法产生相互间隔的一频率为1KH的方波与高电平信号。
+  13                                  1KH方波持续期间，会驱动蜂鸣器发出响声，高电平持续期间，蜂鸣器不会发出声音。
+  14                                  这样，二者相互穿插的结果就产生了断断续续的“滴滴”声。
+  15          *  说明：免费开源，不提供源代码分析.
+  16          **********************************************************************************/
+  17          
+  18          #include<reg52.h>
+  19          
+  20          #define uint unsigned int 
+  21          uint aa;
+  22          unsigned char pp;
+  23          bit close;
+  24          
+  25          sbit didi=P2^3;
+  26          
+  27          
+  28          void main()
+  29          {
+  30   1              TMOD=0x01;               //模式设置，00000001，可见采用的是定时器0，工作与模式1（M1=0，M0=1）。
+  31   1              TR0=1;                   //打开定时器
+  32   1              TH0=0xff;//计时器每隔100微秒(0.1ms)发起一次中断。
+  33   1              TL0=0x9c;//产生频率为1000HZ的声音信号。
+  34   1              ET0=1;                   //开定时器0中断
+  35   1              EA=1;                    //开总中断
+  36   1              while(1)
+  37   1              {
+  38   2                      if(pp==10)
+  39   2                      {
+  40   3                              pp=0;
+  41   3                              if(!close)
+  42   3                                      didi=~didi;      //频率为1KH的音频信号
+  43   3                              aa++;
+  44   3                      }       
+  45   2                      if(aa==200)
+  46   2                      {
+  47   3                              didi=1;
+  48   3                              close=1;                 //方波音频信号持续时间为200*10*100us=0.2s
+  49   3                      }
+  50   2                      if(aa==300)                      //滴滴声的周期为300*10*100us=0.3s
+  51   2                      {
+  52   3                              close=0;
+  53   3                              aa=0;
+  54   3                      }
+  55   2              }
+C51 COMPILER V8.08   DIDI                                                                  08/15/2015 20:04:26 PAGE 2   
+
+  56   1      }
+  57          
+  58          void time0() interrupt 1
+  59          {       TH0=0xff;
+  60   1              TL0=0x9c;
+  61   1              pp++;
+  62   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     76    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,75 @@
+C51 COMPILER V8.08   4                                                                     08/15/2015 12:46:48 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 4
+OBJECT MODULE PLACED IN 4.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 4.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 让QX-MCS51  实验板的六位数码管轮流显示数字0到7                                                                             
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include <reg51.h>
+  17          
+  18          sbit dula=P2^6;         //段选信号的锁存器控制
+  19          sbit wela=P2^7;         //位选信号的锁存器控制
+  20          
+  21          unsigned char code wei[]={0xfe,0xfd,0xfb,0xf7,0xef,0xdf,0xbf,0x7f};
+  22                                                          //数码管各位的码表
+  23          unsigned char code duan[]={0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,};
+  24                                                          //0-5的码表
+  25          void delay(unsigned int i)
+  26          {
+  27   1              unsigned int m,n;
+  28   1              for(m=i;m>0;m--)
+  29   1                      for(n=90;n>0;n--);
+  30   1      }
+  31          
+  32          void main()
+  33          {
+  34   1              unsigned char num;
+  35   1              while(1)
+  36   1              {
+  37   2                      for(num=0;num<8;num++)
+  38   2                      {
+  39   3                              P0=wei[num];       
+  40   3                              wela=1;
+  41   3                              wela=0;
+  42   3      
+  43   3                              P0=duan[num];     
+  44   3                              dula=1;
+  45   3                              dula=0;
+  46   3                              delay(1000);
+  47   3                       }
+  48   2              }
+  49   1      }
+  50          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     67    ----
+   CONSTANT SIZE    =     16    ----
+C51 COMPILER V8.08   4                                                                     08/15/2015 12:46:48 PAGE 2   
+
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

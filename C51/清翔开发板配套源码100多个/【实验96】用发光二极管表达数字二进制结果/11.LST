@@ -1,0 +1,50 @@
+C51 COMPILER V8.08   11                                                                    08/19/2015 11:40:00 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 11
+OBJECT MODULE PLACED IN 11.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 11.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          /******************************************************************
+  16          程序功能：              将运算结果的十进制数送给单片机P1口，观察现象。
+  17          ****************************************************************************/
+  18          #include <reg51.h>
+  19          
+  20          void main()
+  21          {
+  22   1              unsigned char p=10,q=100,plus;
+  23   1              plus=p+q;
+  24   1              P1=plus;//将运算结果110赋给P1寄存器，那么在P1各个管脚上，就会
+  25   1                              //以二进制的形式显示十进制数110，即0110 1110  
+  26   1                              //放入P1寄存器后对应的LED首尾颠倒 也即第一、第五和第八个LED被点亮（由电路图可知，低电平会使led点亮）。
+  27   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =      7    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

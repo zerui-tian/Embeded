@@ -1,0 +1,66 @@
+C51 COMPILER V8.08   COUNTER                                                               08/15/2015 20:03:05 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE COUNTER
+OBJECT MODULE PLACED IN counter.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE counter.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】：本程序为计数器的基本驱动示例，计数器工作于方式1。
+  13                                  对按键S2按下的次数进行计数，当计数记到3时，第一个发光二极管被点亮。 
+  14          *  说明：免费开源，不提供源代码分析.
+  15          **********************************************************************************/
+  16          
+  17          #include<reg52.h>
+  18          
+  19          #define uint unsigned int 
+  20          //uint pp;
+  21          
+  22          sbit led=P1^0;
+  23          sbit s2=P3^0;
+  24          sbit T=P3^4;
+  25          
+  26          void main()
+  27          {
+  28   1              TMOD=0x05;               //模式设置，00000001，可见采用的是定时器0，工作与模式1（M1=0，M0=1）。
+  29   1              TR0=1;                   //打开计数器
+  30   1              ET0=1;                   //开计数器0中断
+  31   1              EA=1;                    //开总中断
+  32   1              while(1)
+  33   1              {
+  34   2                      T=s2;
+  35   2                      if(TL0==3)      //当计数为3时，led被点亮。当然，由于有按键抖动，故有时未按三下S2，灯已经亮了。
+  36   2                              led=0;
+  37   2              }
+  38   1      }
+  39          /*
+  40          void time0() interrupt 1
+  41          {       
+  42                  pp++;
+  43          } */
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     22    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

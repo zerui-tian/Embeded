@@ -1,0 +1,1176 @@
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg52.h>
+   2          #include <intrins.h>
+   3          
+   4          #define TRUE  1
+   5          #define FALSE 0
+   6          
+   7          #define HIGH  1
+   8          #define LOW   0
+   9          
+  10          #define SCAN_PERIOD_H 0xF9
+  11          #define SCAN_PERIOD_L 0x00
+  12          #define FRAME_LENGTH_PC 16
+  13          #define FRAME_LENGTH_BPC 12
+  14          
+  15          //time information
+  16          // 0      1       2       3       4       5       6       7
+  17          // second minute  hour    weekday date    month   year    century
+  18          // 0-59   0-59    0-23    0-6     1-31    1-12    00-99   00-99
+  19          #define SECOND    0
+  20          #define MINUTE    1
+  21          #define HOUR      2
+  22          #define WEEKDAY   3
+  23          #define DATE      4
+  24          #define MONTH     5
+  25          #define YEAR      6
+  26          #define CENTURY   7
+  27          xdata char time_DS12C887[8];
+  28          xdata char time_BPC[8];
+  29          
+  30          #define DISPLAY_MINUTEANDHOUR 0
+  31          #define DISPLAY_SECOND        1
+  32          #define DISPLAY_DATEANDMONTH  2
+  33          #define DISPLAY_WEEKDAY       3
+  34          #define DISPLAY_YEAR          4
+  35          #define OUTPUT_SERIAL         5
+  36          char state = DISPLAY_MINUTEANDHOUR;
+  37          
+  38          #define COUNTDOWN_MATRIXLIGHTUP 11
+  39          #define COUNTDOWN_RESETBITSRECIEVER_BPC 5
+  40          char countDown_ResetBitsReciever_BPC = COUNTDOWN_RESETBITSRECIEVER_BPC;
+  41          char countDown_MatrixLightUp = COUNTDOWN_MATRIXLIGHTUP;
+  42          
+  43          //signals
+  44          sbit RCLK_595   = P1^0;
+  45          sbit SER_595    = P1^1;
+  46          sbit SRCLK_595  = P1^2;
+  47          sbit OE_595     = P1^3;
+  48          sbit BUTTON     = P1^4;
+  49          sbit DATA_BPC   = P3^5;
+  50          sbit RESET_BPC  = P3^4;
+  51          sbit PON_BPC    = P1^7;
+  52          
+  53          //addresses of variables in ds12c887
+  54          xdata char chSecondsChannel   _at_ 0x8000;
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 2   
+
+  55          xdata char chMinutesChannel   _at_ 0x8002;
+  56          xdata char chHoursChannel     _at_ 0x8004;
+  57          xdata char chDofWChannel      _at_ 0x8006;
+  58          xdata char chDateChannel      _at_ 0x8007;
+  59          xdata char chMonthChannel     _at_ 0x8008;
+  60          xdata char chYearChannel      _at_ 0x8009;
+  61          xdata char chRegA             _at_ 0x800A;
+  62          xdata char chRegB             _at_ 0x800B;
+  63          xdata char chRegC             _at_ 0x800C;
+  64          xdata char chRegD             _at_ 0x800D;
+  65          xdata char chCenturyChannel   _at_ 0x8032;
+  66          
+  67          //counters
+  68          char interruptCounter_MatrixScanner = 0;
+  69          char interruptCounter_BitsReciever_BPC = 0;
+  70          char interruptCounter_BytesReciever_PC = 0;
+  71          
+  72          //video buffer
+  73          int vbuf[8][3];
+  74          char digits[4] = {0,0,0,0};
+  75          
+  76          //recieve buffers
+  77          char buffer_BPC[FRAME_LENGTH_BPC];//{0x02,0x01,0x04,0x0C,0x03,0x0E,0x0A,0x05,0x05,0x00,0x00,0x00};
+  78          char buffer_serial[FRAME_LENGTH_PC];
+  79          
+  80          //flags
+  81          bit colonLightUp =    FALSE;
+  82          bit matrixLightUp =   FALSE;
+  83          bit resetBPC =        TRUE;
+  84          bit recentlySucceed = FALSE;
+  85          bit recentlyRecieve = FALSE;
+  86          
+  87          int code rowSelectCode[8][3] = {
+  88            {0x3434,0x34EB,0xEBEB},
+  89            {0x3434,0x346F,0x6F6F},
+  90            {0x3535,0x356B,0x6B6B},
+  91            {0x3434,0x347B,0x7B7B},
+  92            {0xB4B4,0xB46B,0x6B6B},
+  93            {0x3636,0x366B,0x6B6B},
+  94            {0x7474,0x746B,0x6B6B},
+  95            {0x3C3C,0x3C6B,0x6B6B}
+  96          };
+  97          int code digit3Code[3][8][3] = {
+  98            // 0x:xx
+  99            {
+ 100              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 101              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 102              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 103              {0xFBFF,0xFFFF,0xFFFD},//____*_*_________________
+ 104              {0xFBFF,0xFFFF,0xFFFD},//____*_*_________________
+ 105              {0xFBFF,0xFFFF,0xFFFD},//____*_*_________________
+ 106              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 107              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 108            },
+ 109            // 1x:xx
+ 110            {
+ 111              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 112              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 113              {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 114              {0xFBFF,0xFFFF,0xFFDF},//____**__________________
+ 115              {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 116              {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 3   
+
+ 117              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 118              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 119            },
+ 120            // 2x:xx
+ 121            {
+ 122              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 123              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 124              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 125              {0xFFFF,0xFFFF,0xFFFD},//______*_________________
+ 126              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 127              {0xFBFF,0xFFFF,0xFFFF},//____*___________________
+ 128              {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 129              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 130            }
+ 131          };
+ 132          
+ 133          int code digit2Code[10][8][3] = {
+ 134            // x0:xx
+ 135            {
+ 136              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 137              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 138              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 139              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 140              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 141              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 142              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 143              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 144            },
+ 145            // x1:xx
+ 146            {
+ 147              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 148              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 149              {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 150              {0xFFDF,0xFFFF,0xF7FF},//________**______________
+ 151              {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 152              {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 153              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 154              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 155            },
+ 156            // x2:xx
+ 157            {
+ 158              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 159              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 160              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 161              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 162              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 163              {0xFFFF,0xFFFF,0xF7FF},//________*_______________
+ 164              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 165              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 166            },
+ 167            // x3:xx
+ 168            {
+ 169              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 170              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 171              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 172              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 173              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 174              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 175              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 176              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 177            },
+ 178            // x4:xx
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 4   
+
+ 179            {
+ 180              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 181              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 182              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 183              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 184              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 185              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 186              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 187              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 188            },
+ 189            // x5:xx
+ 190            {
+ 191              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 192              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 193              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 194              {0xFFFF,0xFFFF,0xF7FF},//________*_______________
+ 195              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 196              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 197              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 198              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 199            },
+ 200            // x6:xx
+ 201            {
+ 202              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 203              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 204              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 205              {0xFFFF,0xFFFF,0xF7FF},//________*_______________
+ 206              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 207              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 208              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 209              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 210            },
+ 211            // x7:xx
+ 212            {
+ 213              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 214              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 215              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 216              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 217              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 218              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 219              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+ 220              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 221            },
+ 222            // x8:xx
+ 223            {
+ 224              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 225              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 226              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 227              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 228              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 229              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 230              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 231              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 232            },
+ 233            // x9:xx
+ 234            {
+ 235              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 236              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 237              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 238              {0xFFEF,0xFFFF,0xF7FF},//________*_*_____________
+ 239              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 240              {0xFFEF,0xFFFF,0xFFFF},//__________*_____________
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 5   
+
+ 241              {0xFFCF,0xFFFF,0xF7FF},//________***_____________
+ 242              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 243            }
+ 244          };
+ 245          
+ 246          
+ 247          
+ 248          
+ 249          int code digit1Code[6][8][3] = {
+ 250            // xx:0x
+ 251            {
+ 252              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 253              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 254              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 255              {0xFFFF,0xFFF7,0xFDFF},//______________*_*_______
+ 256              {0xFFFF,0xFFF7,0xFDFF},//______________*_*_______
+ 257              {0xFFFF,0xFFF7,0xFDFF},//______________*_*_______
+ 258              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 259              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 260            },
+ 261            // xx:1x
+ 262            {
+ 263              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 264              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 265              {0xFFFF,0xFFFF,0xFEFF},//_______________*________
+ 266              {0xFFFF,0xFFFF,0xFCFF},//______________**________
+ 267              {0xFFFF,0xFFFF,0xFEFF},//_______________*________
+ 268              {0xFFFF,0xFFFF,0xFEFF},//_______________*________
+ 269              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 270              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 271            },
+ 272            // xx:2x
+ 273            {
+ 274              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 275              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 276              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 277              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 278              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 279              {0xFFFF,0xFFFF,0xFDFF},//______________*_________
+ 280              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 281              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 282            },
+ 283            // xx:3x
+ 284            {
+ 285              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 286              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 287              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 288              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 289              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 290              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 291              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 292              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 293            },
+ 294            // xx:4x
+ 295            {
+ 296              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 297              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 298              {0xFFFF,0xFFF7,0xFDFF},//______________*_*_______
+ 299              {0xFFFF,0xFFF7,0xFDFF},//______________*_*_______
+ 300              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 301              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 302              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 6   
+
+ 303              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 304            },
+ 305            // xx:5x
+ 306            {
+ 307              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 308              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 309              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 310              {0xFFFF,0xFFFF,0xFDFF},//______________*_________
+ 311              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 312              {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 313              {0xFFFF,0xFFF7,0xFCFF},//______________***_______
+ 314              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 315            }
+ 316          };
+ 317          
+ 318          
+ 319          
+ 320          int code digit0Code[10][8][3] = {
+ 321            // xx:x0
+ 322            {
+ 323              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 324              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 325              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 326              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 327              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 328              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 329              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 330              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 331            },
+ 332            // xx:x1
+ 333            {
+ 334              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 335              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 336              {0xFFFF,0xFFBF,0xFFFF},//___________________*____
+ 337              {0xFFFF,0xEFBF,0xFFFF},//__________________**____
+ 338              {0xFFFF,0xFFBF,0xFFFF},//___________________*____
+ 339              {0xFFFF,0xFFBF,0xFFFF},//___________________*____
+ 340              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 341              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 342            },
+ 343            // xx:x2
+ 344            {
+ 345              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 346              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 347              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 348              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 349              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 350              {0xFFFF,0xEFFF,0xFFFF},//__________________*_____
+ 351              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 352              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 353            },
+ 354            // xx:x3
+ 355            {
+ 356              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 357              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 358              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 359              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 360              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 361              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 362              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 363              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 364            },
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 7   
+
+ 365            // xx:x4
+ 366            {
+ 367              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 368              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 369              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 370              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 371              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 372              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 373              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 374              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 375            },
+ 376            // xx:x5
+ 377            {
+ 378              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 379              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 380              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 381              {0xFFFF,0xEFFF,0xFFFF},//__________________*_____
+ 382              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 383              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 384              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 385              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 386            },
+ 387            // xx:x6
+ 388            {
+ 389              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 390              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 391              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 392              {0xFFFF,0xEFFF,0xFFFF},//__________________*_____
+ 393              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 394              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 395              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 396              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 397            },
+ 398            // xx:x7
+ 399            {
+ 400              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 401              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 402              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 403              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 404              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 405              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 406              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 407              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 408            },
+ 409            // xx:x8
+ 410            {
+ 411              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 412              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 413              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 414              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 415              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 416              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 417              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 418              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 419            },
+ 420            // xx:x9
+ 421            {
+ 422              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 423              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 424              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 425              {0xFFFF,0xEBFF,0xFFFF},//__________________*_*___
+ 426              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 8   
+
+ 427              {0xFFFF,0xFBFF,0xFFFF},//____________________*___
+ 428              {0xFFFF,0xEBBF,0xFFFF},//__________________***___
+ 429              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 430            }
+ 431          };
+ 432          
+ 433          int code colonCode[2][8][3] = {
+ 434            // extinguish
+ 435            {
+ 436              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 437              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 438              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 439              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 440              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 441              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 442              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 443              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 444            },
+ 445            // light up
+ 446            {
+ 447              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 448              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 449              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 450              {0xFFFB,0xFFFF,0xFFFF},//____________*___________
+ 451              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 452              {0xFFFB,0xFFFF,0xFFFF},//____________*___________
+ 453              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 454              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 455            }
+ 456          };
+ 457          
+ 458          
+ 459          int code dotCode [8][3] = {
+ 460            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 461            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 462            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 463            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 464            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 465            {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 466            {0xFFFB,0xFFFF,0xFFFF},//____________*___________
+ 467            {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 468          };
+ 469          int code weekdayCode[7][3][8][3] = {
+ 470            {
+ 471              {
+ 472                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 473                {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 474                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 475                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 476                {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 477                {0xFFFF,0xFFFF,0xFFFE},//_______*________________
+ 478                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 479                {0xFBFF,0xFFFF,0xFFDD} //____***_________________
+ 480              },
+ 481              {
+ 482                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 483                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 484                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 485                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 486                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 487                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 488                {0xFFDB,0xFFFF,0xDFFF},//_________*__**__________
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 9   
+
+ 489                {0xFFEF,0xFFFF,0x9FFF} //__________**_*__________
+ 490            
+ 491              },
+ 492              {
+ 493                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 494                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 495                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 496                {0xFFFF,0xCFFF,0xFEFF},//_______________*_**_____
+ 497                {0xFFFF,0xFFB7,0xFEFF},//_______________**__*____
+ 498                {0xFFFF,0xFFBF,0xFEFF},//_______________*___*____
+ 499                {0xFFFF,0xFFBF,0xFEFF},//_______________*___*____
+ 500                {0xFFFF,0xFF9F,0xFEFF} //_______________*___*_*__
+ 501              }
+ 502            },
+ 503            {
+ 504              {
+ 505                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 506                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 507                {0xFBFF,0xFFFF,0xFFBC},//___**_**________________
+ 508                {0xFFFF,0xFFFF,0xFF9E},//___*_*_*________________
+ 509                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 510                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 511                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 512                {0xFFFF,0xFFFF,0xFFBE} //___*___*________________
+ 513            
+ 514              },
+ 515              {
+ 516                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 517                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 518                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 519                {0xFFEB,0xFFFF,0xBFFF},//__________***___________
+ 520                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 521                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 522                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 523                {0xFFEB,0xFFFF,0xBFFF} //__________***___________
+ 524              },
+ 525              {
+ 526                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 527                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 528                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 529                {0xFFFF,0xCFFF,0xFEFF},//_______________*_**_____
+ 530                {0xFFFF,0xFFB7,0xFEFF},//_______________**__*____
+ 531                {0xFFFF,0xFFBF,0xFEFF},//_______________*___*____
+ 532                {0xFFFF,0xFFBF,0xFEFF},//_______________*___*____
+ 533                {0xFFFF,0xFF9F,0xFEFF} //_______________*___*_*__
+ 534              }
+ 535            },
+ 536            {
+ 537              {
+ 538                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 539                {0xFBFF,0xFFFF,0xFF9C},//___*****________________
+ 540                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 541                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 542                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 543                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 544                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 545                {0xFFFF,0xFFFF,0xFFDF} //_____*__________________
+ 546            
+ 547              },
+ 548              {
+ 549                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 550                {0xFFFF,0xFFFF,0xFFFF},//________________________
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 10  
+
+ 551                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 552                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 553                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 554                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 555                {0xFFDB,0xFFFF,0xDFFF},//_________*__**__________
+ 556                {0xFFEF,0xFFFF,0x9FFF} //__________**_*__________
+ 557            
+ 558              },
+ 559              {
+ 560                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 561                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 562                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 563                {0xFFFF,0xCFF7,0xFFFF},//________________***____
+ 564                {0xFFFF,0xFFBF,0xFEFF},//_______________*___*___
+ 565                {0xFFFF,0xCFB7,0xFEFF},//_______________*****___
+ 566                {0xFFFF,0xFFFF,0xFEFF},//_______________*_______
+ 567                {0xFFFF,0xCFD7,0xFFFF},//________________***__*_
+ 568            
+ 569              }
+ 570            },
+ 571            {
+ 572              {
+ 573                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 574                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 575                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 576                {0xFFFF,0xFFFF,0xFF9E},//___*_*_*________________
+ 577                {0xFFFF,0xFFFF,0xFF9E},//___*_*_*________________
+ 578                {0xFFFF,0xFFFF,0xFF9E},//___*_*_*________________
+ 579                {0xFFFF,0xFFFF,0xFF9E},//___*_*_*________________
+ 580                {0xFBFF,0xFFFF,0xFFFD} //____*_*_________________
+ 581            
+ 582              },
+ 583              {
+ 584                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 585                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 586                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 587                {0xFFEB,0xFFFF,0xBFFF},//__________***___________
+ 588                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 589                {0xFFCB,0xFFFF,0x9FFF},//_________*****__________
+ 590                {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 591                {0xFFEB,0xFFFF,0xBFFF} //__________***___________
+ 592            
+ 593              },
+ 594              {
+ 595                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 596                {0xFFFF,0xFFBF,0xFFFF},//__________________*____
+ 597                {0xFFFF,0xFFBF,0xFFFF},//__________________*____
+ 598                {0xFFFF,0xDFB7,0xFFFF},//_______________**_*____
+ 599                {0xFFFF,0xEFBF,0xFEFF},//______________*__**____
+ 600                {0xFFFF,0xFFBF,0xFEFF},//______________*___*____
+ 601                {0xFFFF,0xEFBF,0xFEFF},//______________*__**____
+ 602                {0xFFFF,0xDF97,0xFFFF} //_______________**_*_*__
+ 603            
+ 604              }
+ 605            },
+ 606            {
+ 607              {
+ 608                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 609                {0xFBFF,0xFFFF,0xFF9C},//___*****________________
+ 610                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 611                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 612                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 11  
+
+ 613                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 614                {0xFFFF,0xFFFF,0xFFDF},//_____*__________________
+ 615                {0xFFFF,0xFFFF,0xFFDF} //_____*__________________
+ 616            
+ 617              },
+ 618              {
+ 619                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 620                {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 621                {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 622                {0xFFDB,0xFFFF,0xBFFF},//_________*_**___________
+ 623                {0xFFCF,0xFFFF,0xDFFF},//_________**__*__________
+ 624                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 625                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 626                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 627            
+ 628              },
+ 629              {
+ 630                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 631                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 632                {0xFFFF,0xFFFF,0xFFFF},//_______________________
+ 633                {0xFFFF,0xFFBF,0xFEFF},//______________*___*____
+ 634                {0xFFFF,0xFFBF,0xFEFF},//______________*___*____
+ 635                {0xFFFF,0xFFBF,0xFEFF},//______________*___*____
+ 636                {0xFFFF,0xEFBF,0xFEFF},//______________*__**____
+ 637                {0xFFFF,0xDF97,0xFFFF} //_______________**_*_*__
+ 638            
+ 639              }
+ 640            },
+ 641            {
+ 642              {
+ 643                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 644                {0xFBFF,0xFFFF,0xFF9C},//___*****________________
+ 645                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 646                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 647                {0xFBFF,0xFFFF,0xFF9D},//___****_________________
+ 648                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 649                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 650                {0xFFFF,0xFFFF,0xFFBF} //___*____________________
+ 651            
+ 652              },
+ 653              {
+ 654                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 655                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 656                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 657                {0xFFDB,0xFFFF,0xBFFF},//_________*_**___________
+ 658                {0xFFCF,0xFFFF,0xDFFF},//_________**__*__________
+ 659                {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 660                {0xFFDF,0xFFFF,0xFFFF},//_________*______________
+ 661                {0xFFDF,0xFFFF,0xFFFF} //_________*______________
+ 662            
+ 663              },
+ 664              {
+ 665                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 666                {0xFFFF,0xDFFF,0xFFFF},//_________________*______
+ 667                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 668                {0xFFFF,0xDFF7,0xFFFF},//________________**______
+ 669                {0xFFFF,0xDFFF,0xFFFF},//_________________*______
+ 670                {0xFFFF,0xDFFF,0xFFFF},//_________________*______
+ 671                {0xFFFF,0xDFFF,0xFFFF},//_________________*______
+ 672                {0xFFFF,0xCFD7,0xFFFF} //________________***__*_
+ 673            
+ 674              }
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 12  
+
+ 675            },
+ 676            {
+ 677              {
+ 678                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 679                {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 680                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 681                {0xFFFF,0xFFFF,0xFFBF},//___*____________________
+ 682                {0xFBFF,0xFFFF,0xFFDD},//____***_________________
+ 683                {0xFFFF,0xFFFF,0xFFFE},//_______*________________
+ 684                {0xFFFF,0xFFFF,0xFFBE},//___*___*________________
+ 685                {0xFBFF,0xFFFF,0xFFDD} //____***_________________
+ 686              },
+ 687              {
+ 688                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 689                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 690                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 691                {0xFFEB,0xFFFF,0xBFFF},//__________***___________
+ 692                {0xFFFF,0xFFFF,0xDFFF},//_____________*__________
+ 693                {0xFFEB,0xFFFF,0x9FFF},//__________****__________
+ 694                {0xFFDF,0xFFFF,0xDFFF},//_________*___*__________
+ 695                {0xFFEB,0xFFFF,0x9FFF} //__________****__________
+ 696            
+ 697              },
+ 698              {
+ 699                {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 700                {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 701                {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 702                {0xFFFF,0xDFF7,0xFEFF},//_______________***______
+ 703                {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 704                {0xFFFF,0xFFF7,0xFFFF},//________________*_______
+ 705                {0xFFFF,0xFFB7,0xFFFF},//________________*__*____
+ 706                {0xFFFF,0xCFDF,0xFFFF},//_________________**__*_
+ 707            
+ 708              }
+ 709            }
+ 710          };
+ 711          
+ 712          
+ 713          
+ 714          int code uartCode[8][3] = {
+ 715              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 716              {0xFFFF,0xFFFF,0xFFFF},//________________________
+ 717              {0xEFDB,0xCB9F,0xD5DF},//__*__*__**__***__*****__
+ 718              {0xEFEB,0xFFBF,0xFEDE},//__*__*_*__*_*__*___*____
+ 719              {0xEFEB,0xFFBF,0xDDDE},//__*__*_*__*_***____*____
+ 720              {0xEFCB,0xFFBF,0xF5DE},//__*__*_****_*_*____*____
+ 721              {0xFBEB,0xFFBF,0xFEBE},//___**__*__*_*__*___*____
+ 722              {0xFFFF,0xFFFF,0xFFFF} //________________________
+ 723          };
+ 724          
+ 725          //int code columnSelectCode[24][3] = {
+ 726          //  {0xFFFF,0xFFFF,0xFFF7},
+ 727          //  {0xDFFF,0xFFFF,0xFFFF},
+ 728          //  {0xEFFF,0xFFFF,0xFFFF},
+ 729          //  {0xFFFF,0xFFFF,0xFFBF},
+ 730          //  {0xFBFF,0xFFFF,0xFFFF},
+ 731          //  {0xFFFF,0xFFFF,0xFFDF},
+ 732          //  {0xFFFF,0xFFFF,0xFFFD},
+ 733          //  {0xFFFF,0xFFFF,0xFFFE},
+ 734          //  
+ 735          //  {0xFFFF,0xFFFF,0xF7FF},
+ 736          //  {0xFFDF,0xFFFF,0xFFFF},
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 13  
+
+ 737          //  {0xFFEF,0xFFFF,0xFFFF},
+ 738          //  {0xFFFF,0xFFFF,0xBFFF},
+ 739          //  {0xFFFB,0xFFFF,0xFFFF},
+ 740          //  {0xFFFF,0xFFFF,0xDFFF},
+ 741          //  {0xFFFF,0xFFFF,0xFDFF},
+ 742          //  {0xFFFF,0xFFFF,0xFEFF},
+ 743          //  
+ 744          //  {0xFFFF,0xFFF7,0xFFFF},
+ 745          //  {0xFFFF,0xDFFF,0xFFFF},
+ 746          //  {0xFFFF,0xEFFF,0xFFFF},
+ 747          //  {0xFFFF,0xFFBF,0xFFFF},
+ 748          //  {0xFFFF,0xFBFF,0xFFFF},
+ 749          //  {0xFFFF,0xFFDF,0xFFFF},
+ 750          //  {0xFFFF,0xFFFD,0xFFFF},
+ 751          //  {0xFFFF,0xFFFE,0xFFFF}
+ 752          //};
+ 753          /************************************************
+ 754           *             Functions of DS12C887            *
+ 755           ************************************************/
+ 756          void GetTime_DS12C887(){
+ 757   1        time_DS12C887[SECOND] = chSecondsChannel;
+ 758   1        time_DS12C887[MINUTE] = chMinutesChannel;
+ 759   1        time_DS12C887[HOUR] = chHoursChannel;
+ 760   1        time_DS12C887[WEEKDAY] = chDofWChannel-1;
+ 761   1        time_DS12C887[DATE] = chDateChannel;
+ 762   1        time_DS12C887[MONTH] = chMonthChannel;
+ 763   1        time_DS12C887[YEAR] = chYearChannel;
+ 764   1        time_DS12C887[CENTURY] = chCenturyChannel;
+ 765   1      }
+ 766          void SetTime_DS12C887(char* time){
+ 767   1        char regB;
+ 768   1        regB = chRegB;
+ 769   1        chRegB = regB|0x80;
+ 770   1        
+ 771   1        chSecondsChannel =  time[SECOND];
+ 772   1        chMinutesChannel =  time[MINUTE];
+ 773   1        chHoursChannel =    time[HOUR];
+ 774   1        chDofWChannel =     time[WEEKDAY]+1;
+ 775   1          //((time[6] + (time[6]>>2) + (time[7]>>2) - 2*time[7] + (26*(time[5]+1)/10) + time[4] - 1) % 7) + 1;
+ 776   1        chDateChannel =     time[DATE];
+ 777   1        chMonthChannel =    time[MONTH];
+ 778   1        chYearChannel =     time[YEAR];
+ 779   1        chCenturyChannel =  time[CENTURY];
+ 780   1        
+ 781   1        chRegB = regB;
+ 782   1      }
+ 783          
+ 784          /************************************************
+ 785           *             Functions of 74HC595             *
+ 786           ************************************************/
+ 787          void Load_595(int dat_H, int dat_M, int dat_L){
+ 788   1        char i;
+ 789   1        for(i=0;i<16;i++){
+ 790   2          SER_595=dat_H&0x8000;
+ 791   2          dat_H=dat_H<<1;
+ 792   2          SRCLK_595=HIGH;
+ 793   2          SRCLK_595=LOW;
+ 794   2        }
+ 795   1        for(i=0;i<16;i++){
+ 796   2          SER_595=dat_M&0x8000;
+ 797   2          dat_M=dat_M<<1;
+ 798   2          SRCLK_595=HIGH;
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 14  
+
+ 799   2          SRCLK_595=LOW;
+ 800   2        }
+ 801   1        for(i=0;i<16;i++){
+ 802   2          SER_595=dat_L&0x8000;
+ 803   2          dat_L=dat_L<<1;
+ 804   2          SRCLK_595=HIGH;
+ 805   2          SRCLK_595=LOW;
+ 806   2        }
+ 807   1      }
+ 808          void Output_595(){
+ 809   1        RCLK_595=HIGH;
+ 810   1        RCLK_595=LOW;
+ 811   1      }
+ 812          
+ 813          
+ 814          
+ 815          /************************************************
+ 816           *               Command Analyzer               *
+ 817           ************************************************/
+ 818          void Command_Analyzer(void){
+ 819   1        switch(buffer_serial[0]){
+ 820   2          case 0x01:
+ 821   2            SetTime_DS12C887(buffer_serial+1);
+ 822   2            break;
+ 823   2          default:
+ 824   2            break;
+ 825   2        }
+ 826   1      }
+ 827          
+ 828          
+ 829          
+ 830          /************************************************
+ 831           *                Matrix Refresh                *
+ 832           ************************************************/
+ 833          void Refresh(void){
+ 834   1        char i,j,k;
+ 835   1        for(i=0;i<8;i++){
+ 836   2          for(j=0;j<3;j++){
+ 837   3            switch(state){
+ 838   4              case DISPLAY_MINUTEANDHOUR:{
+ 839   5                digits[3] = time_DS12C887[HOUR]>>4;
+ 840   5                digits[2] = time_DS12C887[HOUR]&0x0F;
+ 841   5                digits[1] = time_DS12C887[MINUTE]>>4;
+ 842   5                digits[0] = time_DS12C887[MINUTE]&0x0F;
+ 843   5                ET0 = FALSE;
+ 844   5                vbuf[i][j] = digit3Code[digits[3]][i][j] &
+ 845   5                             digit2Code[digits[2]][i][j] &
+ 846   5                             colonCode[colonLightUp][i][j] &
+ 847   5                             digit1Code[digits[1]][i][j] &
+ 848   5                             digit0Code[digits[0]][i][j];
+ 849   5                vbuf[i][j] &= rowSelectCode[i][j];
+ 850   5                ET0 = TRUE;
+ 851   5                break;
+ 852   5              }
+ 853   4              case DISPLAY_SECOND:{
+ 854   5                digits[1] = time_DS12C887[SECOND]>>4;
+ 855   5                digits[0] = time_DS12C887[SECOND]&0x0F;
+ 856   5                ET0 = FALSE;
+ 857   5                vbuf[i][j] = colonCode[colonLightUp][i][j] &
+ 858   5                             digit1Code[digits[1]][i][j] &
+ 859   5                             digit0Code[digits[0]][i][j];
+ 860   5                vbuf[i][j] &= rowSelectCode[i][j];
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 15  
+
+ 861   5                ET0 = TRUE;
+ 862   5                break;
+ 863   5              }
+ 864   4              case DISPLAY_DATEANDMONTH:{
+ 865   5                digits[3] = time_DS12C887[MONTH]>>4;
+ 866   5                digits[2] = time_DS12C887[MONTH]&0x0F;
+ 867   5                digits[1] = time_DS12C887[DATE]>>4;
+ 868   5                digits[0] = time_DS12C887[DATE]&0x0F;
+ 869   5                ET0 = FALSE;
+ 870   5                vbuf[i][j] = digit3Code[digits[3]][i][j] &
+ 871   5                             digit2Code[digits[2]][i][j] &
+ 872   5                             dotCode[i][j] &
+ 873   5                             digit1Code[digits[1]][i][j] &
+ 874   5                             digit0Code[digits[0]][i][j];
+ 875   5                vbuf[i][j] &= rowSelectCode[i][j];
+ 876   5                ET0 = TRUE;
+ 877   5                break;
+ 878   5              }
+ 879   4              case DISPLAY_WEEKDAY:{
+ 880   5                ET0 = FALSE;
+ 881   5                vbuf[i][j] = weekdayCode[time_DS12C887[WEEKDAY]][0][i][j] &
+ 882   5                             weekdayCode[time_DS12C887[WEEKDAY]][1][i][j] &
+ 883   5                             weekdayCode[time_DS12C887[WEEKDAY]][2][i][j];
+ 884   5                vbuf[i][j] &= rowSelectCode[i][j];
+ 885   5                ET0 = TRUE;
+ 886   5                break;
+ 887   5              }
+ 888   4              case DISPLAY_YEAR:{
+ 889   5                digits[3] = time_DS12C887[CENTURY]>>4;
+ 890   5                digits[2] = time_DS12C887[CENTURY]&0x0F;
+ 891   5                digits[1] = time_DS12C887[YEAR]>>4;
+ 892   5                digits[0] = time_DS12C887[YEAR]&0x0F;
+ 893   5                ET0 = FALSE;
+ 894   5                vbuf[i][j] = digit3Code[digits[3]][i][j] &
+ 895   5                             digit2Code[digits[2]][i][j] &
+ 896   5                             digit1Code[digits[1]][i][j] &
+ 897   5                             digit0Code[digits[0]][i][j];
+ 898   5                vbuf[i][j] &= rowSelectCode[i][j];
+ 899   5                ET0 = TRUE;
+ 900   5                break;
+ 901   5              }
+ 902   4              case OUTPUT_SERIAL:{
+ 903   5                if(i==0&&j==0){
+ 904   6                  for(k=0;k<8;k++){
+ 905   7                    SBUF=time_DS12C887[k];
+ 906   7                    while(!TI);
+ 907   7                    TI=FALSE;
+ 908   7                  }
+ 909   6                }
+ 910   5                ET0=FALSE;
+ 911   5                vbuf[i][j] = uartCode[i][j]&rowSelectCode[i][j];
+ 912   5                ET0=TRUE;
+ 913   5                break;
+ 914   5              }
+ 915   4              default:
+ 916   4                break;
+ 917   4            }
+ 918   3          }
+ 919   2        }
+ 920   1      }
+ 921          
+ 922          /************************************************
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 16  
+
+ 923           *                 Initializer                  *
+ 924           ************************************************/
+ 925          void initializer(){
+ 926   1        //timers
+ 927   1        TMOD=0x21;
+ 928   1        TH0=SCAN_PERIOD_H;
+ 929   1        TL0=SCAN_PERIOD_L;
+ 930   1        TL1=0xFA;
+ 931   1        TH1=0xFA;//baudrate 9600
+ 932   1        
+ 933   1        //serial
+ 934   1        SCON=0x50;
+ 935   1        PCON=0x00;
+ 936   1        
+ 937   1        //external: negative edge
+ 938   1        IT0=TRUE;
+ 939   1        IT1=TRUE;
+ 940   1        
+ 941   1        //eable timers
+ 942   1        TR0=TRUE;
+ 943   1        TR1=TRUE;
+ 944   1        
+ 945   1        //priority
+ 946   1        IP = 0x12;
+ 947   1        
+ 948   1        //initialize DS12C887
+ 949   1        chRegA = 0x2F; // UIP DV2 DV1 DV0 RS3   RS2 RS1   RS0
+ 950   1        chRegB = 0x0A; // SET PIE AIE UIE SQWE  DM  24/12 DSE
+ 951   1        
+ 952   1        //initialize 595
+ 953   1        OE_595=LOW;
+ 954   1        
+ 955   1        //reset BPC reciever
+ 956   1        RESET_BPC=HIGH;
+ 957   1      
+ 958   1        //eable IRQs
+ 959   1        ET0=TRUE;
+ 960   1        EX0=TRUE;
+ 961   1        EX1=TRUE;
+ 962   1        ES=TRUE;
+ 963   1        
+ 964   1        //eable interruption
+ 965   1        EA=TRUE;
+ 966   1      }
+ 967          
+ 968          void main(){
+ 969   1        initializer();
+ 970   1        while(TRUE){
+ 971   2          if(BUTTON==LOW){
+ 972   3            if(matrixLightUp){
+ 973   4              state = (state+1)%6;
+ 974   4              EX0=FALSE;
+ 975   4              Refresh();
+ 976   4              EX0=TRUE;
+ 977   4            }
+ 978   3            countDown_MatrixLightUp = COUNTDOWN_MATRIXLIGHTUP;
+ 979   3            while(BUTTON==LOW){
+ 980   4            }
+ 981   3          }
+ 982   2        }
+ 983   1      }
+ 984          
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 17  
+
+ 985          void EX0_IRQ(void) interrupt 0{
+ 986   1        GetTime_DS12C887();
+ 987   1        colonLightUp = ~colonLightUp;
+ 988   1        matrixLightUp = (countDown_MatrixLightUp>0)|(PON_BPC==LOW&recentlySucceed);
+ 989   1        Refresh();
+ 990   1        if(recentlyRecieve){
+ 991   2          if(countDown_ResetBitsReciever_BPC<=0){
+ 992   3            recentlyRecieve=FALSE;
+ 993   3          }
+ 994   2          else{
+ 995   3            countDown_ResetBitsReciever_BPC--;
+ 996   3          }
+ 997   2        }
+ 998   1        else{
+ 999   2          countDown_ResetBitsReciever_BPC = COUNTDOWN_RESETBITSRECIEVER_BPC;
+1000   2          interruptCounter_BitsReciever_BPC = 0;
+1001   2          interruptCounter_BytesReciever_PC = 0;
+1002   2        }
+1003   1        if(resetBPC){
+1004   2          if(RESET_BPC==HIGH){
+1005   3            RESET_BPC=LOW;
+1006   3            resetBPC=FALSE;
+1007   3          }
+1008   2          else{
+1009   3            RESET_BPC=HIGH;
+1010   3          }
+1011   2        }
+1012   1        else{
+1013   2          RESET_BPC=LOW;
+1014   2        }
+1015   1        if(countDown_MatrixLightUp>0){
+1016   2          countDown_MatrixLightUp--;
+1017   2        }
+1018   1      }
+1019          void Timer0_IRQ(void) interrupt 1{
+1020   1        if(matrixLightUp){
+1021   2          OE_595 = LOW;
+1022   2          Load_595(
+1023   2            vbuf[interruptCounter_MatrixScanner][0],
+1024   2            vbuf[interruptCounter_MatrixScanner][1],
+1025   2            vbuf[interruptCounter_MatrixScanner][2]
+1026   2          );
+1027   2          Output_595();
+1028   2          
+1029   2          interruptCounter_MatrixScanner = (interruptCounter_MatrixScanner+1)%8;
+1030   2        }
+1031   1        else{
+1032   2          OE_595 = HIGH;
+1033   2        }
+1034   1        TH0=SCAN_PERIOD_H;
+1035   1        TL0=SCAN_PERIOD_L;
+1036   1      }
+1037          void EX1_IRQ(void) interrupt 2{
+1038   1        char i;
+1039   1        char checkSum;
+1040   1        
+1041   1        recentlyRecieve=TRUE;
+1042   1        
+1043   1        if(interruptCounter_BitsReciever_BPC%4==0){
+1044   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] = DATA_BPC==HIGH?0x01:0x00;
+1045   2        }
+1046   1        else{
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 18  
+
+1047   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] <<= 1;
+1048   2          buffer_BPC[interruptCounter_BitsReciever_BPC/4] |= DATA_BPC==HIGH?0x01:0x00;
+1049   2        }
+1050   1        interruptCounter_BitsReciever_BPC++;
+1051   1        
+1052   1        if(interruptCounter_BitsReciever_BPC>=FRAME_LENGTH_BPC*4){
+1053   2          
+1054   2          //reset counter
+1055   2          interruptCounter_BitsReciever_BPC=0;
+1056   2          
+1057   2          //calculate checksum
+1058   2          checkSum = 0x00;
+1059   2          for(i=0; i<FRAME_LENGTH_BPC-1; i++){checkSum += buffer_BPC[i];}
+1060   2          checkSum = checkSum&0x0F;
+1061   2          
+1062   2          //calculate validity and fix
+1063   2          if((buffer_BPC[3]&0x0C)==0x0C){
+1064   3              if(checkSum==buffer_BPC[11]){
+1065   4                recentlySucceed = TRUE;
+1066   4              }
+1067   3              else{
+1068   4                recentlySucceed = FALSE;
+1069   4              }
+1070   3          }
+1071   2          else{
+1072   3            recentlySucceed = FALSE;
+1073   3          }
+1074   2          
+1075   2          //if the frame is valid, update time information
+1076   2          if(recentlySucceed){
+1077   3            EX0=FALSE;
+1078   3            
+1079   3            time_BPC[SECOND] =  (buffer_BPC[10]&0x0F)|(buffer_BPC[9]<<4);
+1080   3            time_BPC[MINUTE] =  (buffer_BPC[8]&0x0F)|(buffer_BPC[7]<<4);
+1081   3            
+1082   3            time_BPC[HOUR] = buffer_BPC[6]&0x0F;
+1083   3            if((buffer_BPC[5]&0x08) && (buffer_BPC[6]!=0x0C)){time_BPC[HOUR] = time_BPC[HOUR] + 12;}
+1084   3            buffer_BPC[6] = time_BPC[HOUR];
+1085   3            time_BPC[HOUR] =    (buffer_BPC[6]%10)|((buffer_BPC[6]/10)<<4);
+1086   3      
+1087   3            time_BPC[WEEKDAY] =  buffer_BPC[5]&0x07;
+1088   3            time_BPC[DATE] =    (buffer_BPC[4]&0x0F)|((buffer_BPC[3]&0x03)<<4);
+1089   3            time_BPC[MONTH] =   (buffer_BPC[2]%10)|((buffer_BPC[2]/10)<<4);
+1090   3            time_BPC[YEAR] =    (buffer_BPC[1]&0x0F)|(buffer_BPC[0]<<4);
+1091   3            time_BPC[CENTURY] =  0x20;
+1092   3            
+1093   3            SetTime_DS12C887(time_BPC);
+1094   3            
+1095   3            EX0=TRUE;
+1096   3          }
+1097   2          resetBPC = !recentlySucceed;
+1098   2        }
+1099   1      }
+1100          void UART_IRQ() interrupt 4{
+1101   1        recentlyRecieve=TRUE;
+1102   1        
+1103   1        // disable serial interruption
+1104   1        ES = FALSE;
+1105   1        // reset RI
+1106   1        RI = FALSE;
+1107   1        // read a byte from buffer
+1108   1        buffer_serial[interruptCounter_BytesReciever_PC++] = SBUF;
+C51 COMPILER V9.60.0.0   MAIN                                                              12/23/2021 18:15:14 PAGE 19  
+
+1109   1        // analyzer the frame
+1110   1        if(interruptCounter_BytesReciever_PC >= FRAME_LENGTH_PC){
+1111   2          Command_Analyzer();
+1112   2          interruptCounter_BytesReciever_PC = 0;
+1113   2        }
+1114   1        // enable serial interruption
+1115   1        ES = TRUE;
+1116   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   2828    ----
+   CONSTANT SIZE    =   2640    ----
+   XDATA SIZE       =     16    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     86       6
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =      5    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

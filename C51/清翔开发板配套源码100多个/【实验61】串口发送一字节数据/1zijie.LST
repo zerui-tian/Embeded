@@ -1,0 +1,109 @@
+C51 COMPILER V8.08   1ZIJIE                                                                08/18/2015 19:32:06 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE 1ZIJIE
+OBJECT MODULE PLACED IN 1zijie.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE 1zijie.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/ 
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】：                                                                                    
+  12          * 【使用说明】： 往串口发送一字节数据（可通过串口助手出来，
+  13                            串口助手波特率选为9600）。
+  14                            超级终端设置好后，每按下一次S4键，松开后均会在超级终端
+  15                            上显示一个字母"a"。    
+  16                            入口参数：d: 要发送的字节数据。 接受的时候请选择文本模式
+  17          *  说明：免费开源，不提供源代码分析.
+  18          **********************************************************************************/
+  19          
+  20          #include <reg52.h>
+  21          #define jingzhen     11059200UL                  /*使用22.1184M晶体*/    //
+  22          #define botelv   9600UL              /*波特率定义为9600*/
+  23          unsigned char zifu='a';                 //待显示字符。
+  24          volatile unsigned char sending;
+  25          sbit S4=P3^2;
+  26          
+  27          void delay(unsigned char i)
+  28          {
+  29   1              unsigned char j,k;
+  30   1              for(j=i;j>0;j--)
+  31   1                      for(k=90;k>0;k--);
+  32   1      }
+  33          void init(void)                         //串口初始化
+  34          {
+  35   1       EA=0; //暂时关闭中断
+  36   1       TMOD&=0x0F;  //定时器1模式控制在高4位
+  37   1       TMOD|=0x20;    //定时器1工作在模式2，自动重装模式
+  38   1       SCON=0x50;     //串口工作在模式1
+  39   1       TH1=256-jingzhen/(botelv*12*16);  //计算定时器重装值
+  40   1       TL1=256-jingzhen/(botelv*12*16);
+  41   1       PCON|=0x80;    //串口波特率加倍
+  42   1       ES=1;         //串行中断允许
+  43   1       TR1=1;        //启动定时器1
+  44   1       REN=1;        //允许接收 
+  45   1       EA=1;         //允许中断
+  46   1      }
+  47          
+  48          void send(unsigned char d)                //发送一个字节的数据，形参d即为待发送数据。
+  49          {
+  50   1       
+  51   1       SBUF=d; //将数据写入到串口缓冲
+  52   1       sending=1;      //设置发送标志
+  53   1       while(sending); //等待发送完毕
+  54   1      }
+  55          
+C51 COMPILER V8.08   1ZIJIE                                                                08/18/2015 19:32:06 PAGE 2   
+
+  56          void main()
+  57          {
+  58   1              init();
+  59   1              while(1)
+  60   1              {
+  61   2                      if(S4==0)
+  62   2                      {
+  63   3                              delay(20);
+  64   3                              if(!S4)
+  65   3                              {
+  66   4                                      while(!S4);                
+  67   4                                      send(zifu);
+  68   4                              }
+  69   3                      }
+  70   2              }
+  71   1      }
+  72          
+  73          void uart(void) interrupt 4              //串口发送中断
+  74          {
+  75   1       if(RI)    //收到数据
+  76   1       {
+  77   2        RI=0;   //清中断请求
+  78   2       }
+  79   1       else      //发送完一字节数据
+  80   1       {
+  81   2        TI=0;
+  82   2        sending=0;  //清正在发送标志
+  83   2       }
+  84   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     89    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

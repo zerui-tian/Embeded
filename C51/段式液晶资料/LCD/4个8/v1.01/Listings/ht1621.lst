@@ -1,0 +1,467 @@
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE HT1621
+OBJECT MODULE PLACED IN .\Objects\ht1621.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE APP\ht1621.c OPTIMIZE(8,SPEED) BROWSE INCDIR(.\USER;.\APP) DEBUG OBJECTE
+                    -XTEND PRINT(.\Listings\ht1621.lst) OBJECT(.\Objects\ht1621.obj)
+
+line level    source
+
+   1          #include "HT1621.h"
+   2          #include "intrins.h"
+   3          
+   4          #define HT1621_BASE100MS        100             //由HT1621_Delay实现100mS延时，根据单片机修改此常数
+   5          #define HT1621_CLK                      10              //WR信号线频率,由 HT1621_Delay_us 实现，建议100K        1/0.1M=10us
+   6          
+   7          const unsigned char HT1621_segtab[HT1621_SEGNUM]=
+   8          {
+   9                  0,1,2,3,4,5,6,7
+  10          };
+  11          unsigned char HT1621_maxcom=4;                                  //驱动的com数可以是4com，3com，2com
+  12          unsigned char HT1621_addrbit=6;                                 //驱动ic的ram地址位数 A5-A0
+  13          unsigned char HT1621_dispram[HT1621_SEGNUM];    //显示RAM buffer只使用低4位，bit0->com0,bit1->com1,bit2->com2
+             -,bit3->com3
+  14          unsigned char HT1621_segi,HT1621_comi;
+  15          
+  16          /*************************************************************
+  17          *函数名称：HT1621_Delay_us
+  18          *函数功能：Inserts a delay time
+  19          *输入参数：ucDat-> 延时时间
+  20          *输出参数：None
+  21          *备    注：此程序需要自行校准   实现 10us 延时
+  22          **************************************************************/
+  23          void HT1621_Delay_us(unsigned int ucDat)
+  24          {
+  25   1              while(ucDat--)
+  26   1              {
+  27   2                      _nop_();_nop_();_nop_();_nop_();
+  28   2                      _nop_();_nop_();_nop_();_nop_();
+  29   2              }
+  30   1      }
+  31          /*************************************************************
+  32          *函数名称：HT1621_Delay_ms
+  33          *函数功能：Inserts a delay time
+  34          *输入参数：ucDat-> 延时时间
+  35          *输出参数：None
+  36          *备    注：此程序需要自行校准 实现 1ms 延时
+  37          **************************************************************/
+  38          void HT1621_Delay_ms(unsigned int ucDat)
+  39          {
+  40   1              unsigned int a,b;
+  41   1              
+  42   1              for(a=ucDat; a>0; a--)
+  43   1              {
+  44   2                      for(b=122; b>0; b--);
+  45   2              }
+  46   1      }
+  47          /**
+  48            * @brief  HT1621 clk
+  49            * @param  None
+  50            * @retval None
+  51            */
+  52          void WriteClockHT1621(void)
+  53          {
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 2   
+
+  54   1              HT1621_WR_L();
+  55   1              HT1621_Delay_us(HT1621_CLK);
+  56   1              HT1621_WR_H();
+  57   1              HT1621_Delay_us(HT1621_CLK);
+  58   1      }
+  59          /**
+  60            * @brief  Write HT1621 Command
+  61            * @param  FunctonCode->功能/命令码 
+  62            * @retval None
+  63            */
+  64          void WriteCommandHT1621(unsigned char FunctonCode)
+  65          {
+  66   1              unsigned char Shift = 0x80;
+  67   1              unsigned char i;
+  68   1              
+  69   1              HT1621_CS_L();                                  //CS 片选开
+  70   1              HT1621_Delay_us(HT1621_CLK);
+  71   1              
+  72   1              HT1621_DATA_H();                                //100
+  73   1              WriteClockHT1621();
+  74   1              HT1621_DATA_L();
+  75   1              WriteClockHT1621();
+  76   1              HT1621_DATA_L();
+  77   1              WriteClockHT1621();
+  78   1              
+  79   1              for(i = 0; i < 8; i++) 
+  80   1              {
+  81   2                      if(Shift & FunctonCode)
+  82   2                              HT1621_DATA_H();
+  83   2                      else
+  84   2                              HT1621_DATA_L();
+  85   2                      
+  86   2                       WriteClockHT1621();
+  87   2                       Shift = Shift >> 1;
+  88   2              }
+  89   1              HT1621_DATA_L(); 
+  90   1              WriteClockHT1621();                             //发送一个 0 命令码中最后一位 X
+  91   1              
+  92   1              HT1621_CS_H();                                  //CS 片选关
+  93   1              HT1621_Delay_us(HT1621_CLK);
+  94   1              HT1621_DATA_H();
+  95   1      }
+  96          /**
+  97            * @brief  Write 1 data to HT1621
+  98            * @param  Addr->写入ram的地址 
+  99            * @param  Databuf->写入ram的数据
+ 100            * @retval None
+ 101            */
+ 102          void Write1DataHT1621(unsigned char Addr,unsigned char Dat)
+ 103          {
+ 104   1              unsigned char i; 
+ 105   1              unsigned char Shift;
+ 106   1              
+ 107   1              HT1621_CS_L();                                  //CS 片选开
+ 108   1              HT1621_Delay_us(HT1621_CLK);
+ 109   1              
+ 110   1              HT1621_DATA_H();                                //101
+ 111   1              WriteClockHT1621();
+ 112   1              HT1621_DATA_L();
+ 113   1              WriteClockHT1621();
+ 114   1              HT1621_DATA_H();
+ 115   1              WriteClockHT1621();
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 3   
+
+ 116   1              
+ 117   1              Shift = 0x20;                                   //屏蔽高3位 只用5位
+ 118   1              for( i = 0; i < HT1621_addrbit; i++) 
+ 119   1              {
+ 120   2                      if(Addr & Shift)
+ 121   2                              HT1621_DATA_H();
+ 122   2                      else
+ 123   2                              HT1621_DATA_L();
+ 124   2                      WriteClockHT1621();
+ 125   2                      Shift = Shift >> 1;
+ 126   2              }
+ 127   1              
+ 128   1              Shift = 0x01;
+ 129   1              for (i = 0; i < 4; i++)
+ 130   1              {
+ 131   2                      if( Dat & Shift) 
+ 132   2                              HT1621_DATA_H();
+ 133   2                      else
+ 134   2                              HT1621_DATA_L();
+ 135   2                      WriteClockHT1621();
+ 136   2                      Shift = Shift << 1;
+ 137   2              }   
+ 138   1              HT1621_CS_H();                                  //CS 片选关
+ 139   1              HT1621_Delay_us(HT1621_CLK);
+ 140   1              HT1621_DATA_H();
+ 141   1      }
+ 142          /**
+ 143            * @brief  Write n data to HT1621 
+ 144            * @param  Addr->写入ram的起始地址 
+ 145            * @param  Databuf->写入ram的数据buffer
+ 146            * @param  Cnt->写入ram的数据个数
+ 147            * @retval None
+ 148            */
+ 149          void WritenDataHT1621(unsigned char Addr,unsigned char *Databuf,unsigned char Cnt)
+ 150          {
+ 151   1              unsigned char i,j;
+ 152   1              unsigned char Shift;
+ 153   1              unsigned char dataval;
+ 154   1              
+ 155   1              HT1621_CS_L();                                  //CS 片选开
+ 156   1              HT1621_Delay_us(HT1621_CLK);
+ 157   1              
+ 158   1              HT1621_DATA_H();                                //101
+ 159   1              WriteClockHT1621();
+ 160   1              HT1621_DATA_L();  
+ 161   1              WriteClockHT1621();
+ 162   1              HT1621_DATA_H();  
+ 163   1              WriteClockHT1621();
+ 164   1              
+ 165   1              Shift = 0x20;                                   //屏蔽高3位 只用5位
+ 166   1              for( i = 0; i < HT1621_addrbit; i++) 
+ 167   1              {
+ 168   2                      if (Addr & Shift)
+ 169   2                              HT1621_DATA_H();
+ 170   2                      else
+ 171   2                              HT1621_DATA_L();
+ 172   2                      WriteClockHT1621();
+ 173   2                      Shift = Shift >> 1;
+ 174   2              }
+ 175   1              
+ 176   1              for (j = 0; j < Cnt; j++) 
+ 177   1              {
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 4   
+
+ 178   2                      Shift = 0x01;
+ 179   2                      dataval=*Databuf++;
+ 180   2                      for (i = 0; i < 4; i++) 
+ 181   2                      {
+ 182   3                              if( dataval & Shift) 
+ 183   3                                      HT1621_DATA_H();
+ 184   3                              else
+ 185   3                                      HT1621_DATA_L();
+ 186   3                              WriteClockHT1621();
+ 187   3                              Shift = Shift << 1;
+ 188   3                      }
+ 189   2              }
+ 190   1              HT1621_CS_H();                                  //CS 片选关
+ 191   1              HT1621_Delay_us(HT1621_CLK);
+ 192   1              HT1621_DATA_H();
+ 193   1      }
+ 194          /**
+ 195            * @brief  lcd全显或全灭
+ 196            * @param  state=1->lcd全亮 
+ 197            * @param  state=0->lcd全灭
+ 198            * @retval None
+ 199            */
+ 200          void HT1621_DisAll(unsigned char state)
+ 201          {
+ 202   1              unsigned char segi;
+ 203   1              unsigned char dispram[32];
+ 204   1              
+ 205   1              for(segi=0;segi<32;segi++)
+ 206   1              {
+ 207   2                      dispram[segi]=0;
+ 208   2              }
+ 209   1              for(segi=0;segi<HT1621_SEGNUM;segi++)
+ 210   1              {
+ 211   2                      if(state==1)
+ 212   2                      {
+ 213   3                              if(HT1621_maxcom==2)
+ 214   3                                      HT1621_dispram[segi]=0x03;
+ 215   3                              else if(HT1621_maxcom==3)
+ 216   3                                      HT1621_dispram[segi]=0x07;
+ 217   3                              else if(HT1621_maxcom==4)
+ 218   3                                      HT1621_dispram[segi]=0x0f;
+ 219   3                      }
+ 220   2                      else
+ 221   2                      {
+ 222   3                              HT1621_dispram[segi]=0x00;
+ 223   3                      }
+ 224   2                      dispram[HT1621_segtab[segi]] = HT1621_dispram[segi];
+ 225   2              }
+ 226   1              WritenDataHT1621(0,dispram,32);
+ 227   1      }
+ 228          /**
+ 229            * @brief  lcd显示单个点（1comx1seg）
+ 230            * @param  Seg->点对应的seg 
+ 231            * @param  Com->点对应的com
+ 232            * @retval None
+ 233            */
+ 234          void HT1621_DisSegOn(unsigned char Seg,unsigned char Com)
+ 235          {
+ 236   1              HT1621_dispram[Seg-HT1621_segtab[0]] |= (1<<Com);
+ 237   1              Write1DataHT1621(Seg,HT1621_dispram[Seg-HT1621_segtab[0]]);
+ 238   1      }
+ 239          /**
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 5   
+
+ 240            * @brief  lcd关闭单个点（1comx1seg）
+ 241            * @param  None 
+ 242            * @retval None
+ 243            */
+ 244          void HT1621_DisSegOff(unsigned char Seg,unsigned char Com)
+ 245          {
+ 246   1              HT1621_dispram[Seg-HT1621_segtab[0]] &= ~(1<<Com);
+ 247   1              Write1DataHT1621(Seg,HT1621_dispram[Seg-HT1621_segtab[0]]);
+ 248   1      }
+ 249          /**
+ 250            * @brief  HT1621进入掉电低功耗模式
+ 251            * @param  None 
+ 252            * @retval None
+ 253            */
+ 254          void HT1621_Halt(void)
+ 255          {       
+ 256   1              //连续使用命令LCDOFF和SYSDIS,系统将处于掉电低功耗状态。
+ 257   1              //只有使用片内RC时钟源时,才能使系统进入掉电低功耗状态。
+ 258   1              WriteCommandHT1621(OSC_OFF);
+ 259   1              WriteCommandHT1621(DISP_OFF);
+ 260   1      }
+ 261          /**
+ 262            * @brief  HT1621 Init
+ 263            * @param  None
+ 264            * @retval None
+ 265            */
+ 266          void HT1621_Init(void)  //退出掉电低功耗状态重新初始化HT1621
+ 267          {               
+ 268   1              HT1621_CS_H();
+ 269   1              HT1621_WR_H();
+ 270   1              HT1621_DATA_H();
+ 271   1              
+ 272   1              WriteCommandHT1621(OSC_ON);
+ 273   1              WriteCommandHT1621(DISP_ON);
+ 274   1              
+ 275   1              #if     COM_4_BIAS_1_3
+ 276   1              WriteCommandHT1621(COM_1_3__4);HT1621_maxcom=4; //1/3bias 4com
+ 277   1              #endif
+ 278   1              
+ 279   1              #if     COM_3_BIAS_1_3
+                      WriteCommandHT1621(COM_1_3__3);HT1621_maxcom=3; //1/3bias 3com
+                      #endif
+ 282   1              
+ 283   1              #if     COM_2_BIAS_1_3
+                      WriteCommandHT1621(COM_1_3__2);HT1621_maxcom=2; //1/3bias 2com
+                      #endif
+ 286   1              
+ 287   1              #if     COM_4_BIAS_1_2
+                      WriteCommandHT1621(COM_1_2__4);HT1621_maxcom=4; //1/2bias 4com
+                      #endif
+ 290   1              
+ 291   1              #if     COM_3_BIAS_1_2
+                      WriteCommandHT1621(COM_1_2__3);HT1621_maxcom=3; //1/2bias 3com
+                      #endif
+ 294   1              
+ 295   1              #if     COM_2_BIAS_1_2
+                      WriteCommandHT1621(COM_1_2__2);HT1621_maxcom=2; //1/2bias 2com
+                      #endif
+ 298   1              
+ 299   1              //上电默认配置(以下未用功能关闭降低功耗)
+ 300   1              
+ 301   1              WriteCommandHT1621(TIMER_DIS);
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 6   
+
+ 302   1              WriteCommandHT1621(WDT_DIS);
+ 303   1              WriteCommandHT1621(BUZZ_OFF);
+ 304   1              WriteCommandHT1621(IRQ_DIS);
+ 305   1              
+ 306   1              HT1621_num_init();              //自动生成液晶屏需要的数组
+ 307   1      }
+ 308          /**
+ 309            * @brief  数据交换，自动生成液晶需要的数组，此程序，需要根据液晶图纸修改
+ 310            * @param  None
+ 311            * @retval None
+ 312            */
+ 313          const unsigned char LED_Tab[]=
+ 314          {
+ 315                  0x3f,0x06,0x5b,0x4f,0x66,0x6d,0x7d,0x07,0x7f,0x6f,0x77,0x7c,0x39,0x5e,0x79,0x71,        //0-15 = 0--f
+ 316                  0x58,   //16=c
+ 317                  0x37,   //17=N
+ 318                  0x40,   //18=-
+ 319                  0x0E,   //19=J
+ 320                  0x3E,   //20=U
+ 321                  0x76,   //21=H
+ 322                  0x30,   //22=I
+ 323          };
+ 324          unsigned char LCD_RAM_Tab[sizeof(LED_Tab)];
+ 325          
+ 326          #define         LCD_A                   0x01
+ 327          #define         LCD_B                   0x02
+ 328          #define         LCD_C                   0x04
+ 329          #define         LCD_D                   0x08
+ 330          #define         LCD_E                   0x10
+ 331          #define         LCD_F                   0x20
+ 332          #define         LCD_G                   0x40
+ 333          #define         LCD_P                   0x80
+ 334          
+ 335          void HT1621_num_init(void)
+ 336          {
+ 337   1              unsigned char num,LCD_data;
+ 338   1              
+ 339   1              for(num=0; num<sizeof(LED_Tab); num++)
+ 340   1              {
+ 341   2                      LCD_data = 0;
+ 342   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_P)) << 7);
+ 343   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_E)) << 6);
+ 344   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_F)) << 5);
+ 345   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_A)) << 4);
+ 346   2                      
+ 347   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_D)) << 3);
+ 348   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_C)) << 2);
+ 349   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_G)) << 1);
+ 350   2                      LCD_data = LCD_data | ((unsigned char)((bit)(LED_Tab[num] & LCD_B)) << 0);
+ 351   2                      
+ 352   2                      LCD_RAM_Tab[num] = LCD_data;
+ 353   2              }
+ 354   1      }
+ 355          
+ 356          void HT1621_Test(void)
+ 357          {
+ 358   1              HT1621_DisAll(1);
+ 359   1              HT1621_Delay_ms(1000);
+ 360   1              HT1621_DisAll(0);
+ 361   1              HT1621_Delay_ms(1000);
+ 362   1              
+ 363   1              for(HT1621_segi=0;HT1621_segi<HT1621_SEGNUM;HT1621_segi++)              //seg
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 7   
+
+ 364   1              {
+ 365   2                      for(HT1621_comi=0;HT1621_comi<HT1621_maxcom;HT1621_comi++)      //com
+ 366   2                      {
+ 367   3                              HT1621_DisSegOn(HT1621_segtab[HT1621_segi],HT1621_comi);//LCD单个seg点亮
+ 368   3                              HT1621_Delay_ms(100);
+ 369   3                              HT1621_DisAll(0);
+ 370   3                      }
+ 371   2              }
+ 372   1              
+ 373   1              HT1621_DisAll(1);
+ 374   1              HT1621_Delay_ms(1000);
+ 375   1              for(HT1621_segi=0;HT1621_segi<HT1621_SEGNUM;HT1621_segi++)              //seg
+ 376   1              {
+ 377   2                      for(HT1621_comi=0;HT1621_comi<HT1621_maxcom;HT1621_comi++)      //com
+ 378   2                      {
+ 379   3                              HT1621_DisSegOff(HT1621_segtab[HT1621_segi],HT1621_comi);//LCD单个seg关闭
+ 380   3                              HT1621_Delay_ms(100);
+ 381   3                              HT1621_DisAll(1);
+ 382   3                      }
+ 383   2              }
+ 384   1              HT1621_Delay_ms(1000);
+ 385   1              HT1621_DisAll(0);
+ 386   1      }
+ 387          /**
+ 388            * @brief  用户显示程序，需要自己完善
+ 389            * @param  None
+ 390            * @param  None
+ 391            * @retval None
+ 392            */
+ 393          void HT1621_Display(void)
+ 394          {
+ 395   1              unsigned int  Temp=1234;
+ 396   1              unsigned char Temp_Data;
+ 397   1              
+ 398   1              Temp_Data = Temp / 1000;
+ 399   1              Write1DataHT1621(HT1621_segtab[0],      LCD_RAM_Tab[Temp_Data]>>4);
+ 400   1              Write1DataHT1621(HT1621_segtab[1],      LCD_RAM_Tab[Temp_Data]>>0);
+ 401   1              
+ 402   1              Temp_Data = Temp % 1000 / 100;
+ 403   1              Write1DataHT1621(HT1621_segtab[2],      LCD_RAM_Tab[Temp_Data]>>4);
+ 404   1              Write1DataHT1621(HT1621_segtab[3],      LCD_RAM_Tab[Temp_Data]>>0);
+ 405   1              
+ 406   1              Temp_Data = Temp % 1000 % 100 / 10;
+ 407   1              Write1DataHT1621(HT1621_segtab[4],      LCD_RAM_Tab[Temp_Data]>>4);
+ 408   1              Write1DataHT1621(HT1621_segtab[5],      LCD_RAM_Tab[Temp_Data]>>0);
+ 409   1              
+ 410   1              Temp_Data = Temp % 1000 % 100 % 10;
+ 411   1              Write1DataHT1621(HT1621_segtab[6],      LCD_RAM_Tab[Temp_Data]>>4);
+ 412   1              Write1DataHT1621(HT1621_segtab[7],      LCD_RAM_Tab[Temp_Data]>>0);
+ 413   1      }
+ 414          
+ 415          /************************END OF FILE****/
+ 416          
+ 417          
+ 418          
+ 419          
+ 420          
+ 421          
+ 422          
+ 423          
+ 424          
+ 425          
+C51 COMPILER V9.60.0.0   HT1621                                                            01/12/2021 08:37:31 PAGE 8   
+
+ 426          
+ 427          
+ 428          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1098    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     66      42
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

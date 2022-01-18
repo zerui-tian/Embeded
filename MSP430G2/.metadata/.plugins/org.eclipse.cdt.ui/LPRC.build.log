@@ -1,0 +1,8 @@
+
+**** Build of configuration Debug for project LPRC ****
+
+"D:\\Program Files\\ccs1100\\ccs\\utils\\bin\\gmake" -k -j 4 all -O 
+ 
+gmake[1]: 'LPRC.out' is up to date.
+
+**** Build Finished ****

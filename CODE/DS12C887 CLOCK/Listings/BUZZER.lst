@@ -1,0 +1,35 @@
+C51 COMPILER V9.60.0.0   BUZZER                                                            09/20/2020 19:51:53 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE BUZZER
+OBJECT MODULE PLACED IN .\Objects\BUZZER.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE BUZZER.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\BU
+                    -ZZER.lst) TABS(2) OBJECT(.\Objects\BUZZER.obj)
+
+line level    source
+
+   1          #include<main.h>
+   2          #include<BUZZER.h>
+   3          
+   4          uint NoteTable[3][12] = {
+   5            {0xF88C, 0xF8F3, 0xF95B, 0xF9B8, 0xFA15, 0xFA67,
+   6             0xFAB9, 0xFB04, 0xFB4B, 0xFB90, 0xFBCF, 0xFC0C},
+   7            {0xFC44, 0xFC79, 0xFCAC, 0xFCDC, 0xFD09, 0xFD34,
+   8             0xFD5C, 0xFD82, 0xFDA6, 0xFDC8, 0xFDE2, 0xFE06},
+   9            {0xFE22, 0xFE3D, 0xFE56, 0xFE6E, 0xFE85, 0xFE9A,
+  10             0xFEAE, 0xFEC1, 0xFED3, 0xFEE4, 0xFEF4, 0xFF03}
+  11          };
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   ----    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     72    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

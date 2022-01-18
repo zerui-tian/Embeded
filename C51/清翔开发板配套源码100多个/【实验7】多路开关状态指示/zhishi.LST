@@ -1,0 +1,76 @@
+C51 COMPILER V8.08   ZHISHI                                                                08/15/2015 12:17:20 PAGE 1   
+
+
+C51 COMPILER V8.08, COMPILATION OF MODULE ZHISHI
+OBJECT MODULE PLACED IN zhishi.OBJ
+COMPILER INVOKED BY: C:\Keil\C51\BIN\C51.EXE zhishi.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*********************************************************************************
+   2          * 【编写时间】： 2014年3月5日
+   3          * 【作    者】： 清翔电子:03
+   4          * 【版    本】： 1.0
+   5          * 【网    站】： http://www.qxmcu.com/ 
+   6          * 【淘宝店铺】： http://qxmcu.taobao.com/
+   7          * 【实验平台】： QX-MCS51 单片机开发板
+   8          * 【外部晶振】： 11.0592mhz     
+   9          * 【主控芯片】： STC89C52
+  10          * 【编译环境】： Keil μVisio3  
+  11          * 【程序功能】： 用四个led指示实验板键盘最下面一排的四个按键状态。                                                                                  
+  12          * 【使用说明】： 当按键按下时，对应led亮；松开后，对应led灭
+  13          *  说明：免费开源，不提供源代码分析.
+  14          **********************************************************************************/
+  15          
+  16          #include<reg51.h>
+  17          
+  18          sbit s2=P3^0;
+  19          sbit s3=P3^1;
+  20          sbit s4=P3^2;
+  21          sbit s5=P3^3;
+  22          sbit led1=P1^0;
+  23          sbit led2=P1^1;
+  24          sbit led3=P1^2;
+  25          sbit led4=P1^3;
+  26          
+  27          void main()
+  28          {
+  29   1              while(1)
+  30   1              {
+  31   2                      if(s2==0)
+  32   2                              led1=0;
+  33   2                      else
+  34   2                              led1=1;
+  35   2      
+  36   2                      if(s3==0)
+  37   2                              led2=0;
+  38   2                      else
+  39   2                              led2=1;
+  40   2      
+  41   2                      if(s4==0)
+  42   2                              led3=0;
+  43   2                      else
+  44   2                              led3=1;
+  45   2      
+  46   2                      if(s5==0)
+  47   2                              led4=0;
+  48   2                      else
+  49   2                              led4=1;
+  50   2              }
+  51   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     38    ----
+C51 COMPILER V8.08   ZHISHI                                                                08/15/2015 12:17:20 PAGE 2   
+
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

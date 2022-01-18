@@ -1,0 +1,5 @@
+".\Objects\STARTUP.obj",
+".\Objects\main.obj",
+".\Objects\ht1621.obj" 
+TO ".\Objects\admin" 
+PRINT(".\Listings\admin.m51")

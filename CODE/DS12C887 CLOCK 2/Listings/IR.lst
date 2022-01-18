@@ -1,0 +1,78 @@
+C51 COMPILER V9.60.0.0   IR                                                                10/01/2020 01:34:10 PAGE 1   
+
+
+C51 COMPILER V9.60.0.0, COMPILATION OF MODULE IR
+OBJECT MODULE PLACED IN .\Objects\IR.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE IR.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\IR.lst
+                    -) TABS(2) OBJECT(.\Objects\IR.obj)
+
+line level    source
+
+   1          #include<reg51.h>
+   2          #include<intrins.h>
+   3          #include<IR.h>
+   4          
+   5          sbit IR=P3^2;
+   6          
+   7          uchar IR_timer;
+   8          uchar IR_ValidDataPayload[4];
+   9          uchar IR_timeGap[FRAME_LENGTH];
+  10          
+  11          void IR_Init(){
+  12   1        TMOD=0x02;
+  13   1        TH0=0x00;
+  14   1        TL0=0x00;
+  15   1        ET0=1;
+  16   1        TR0=1;
+  17   1      
+  18   1        IT0 = 1;
+  19   1        EX0 = 1;
+  20   1      }
+  21          
+  22          void IR_CommandAnalyzer(void){
+  23   1        switch(IR_ValidDataPayload[2]){
+  24   2          default:
+  25   2            break;
+  26   2        }
+  27   1      }
+  28          void IR_Preprocess(void){ 
+  29   1        uchar cnt1, cnt2, cnt3;
+  30   1        uchar cord,value;
+  31   1        cnt3=1;
+  32   1        for(cnt1=0; cnt1<4; cnt1++){
+  33   2          for(cnt2=1;cnt2<=8;cnt2++){
+  34   3            cord=IR_timeGap[cnt3];
+  35   3            if(cord>7){
+  36   4              value=value|0x80;
+  37   4            }
+  38   3            else{
+  39   4              /* do nothing */
+  40   4            }
+  41   3            if(cnt2<8){
+  42   4              value>>=1;
+  43   4            }
+  44   3            else {
+  45   4              /* do nothing */
+  46   4            }
+  47   3            cnt3++;
+  48   3          }
+  49   2          IR_ValidDataPayload[cnt1]=value;
+  50   2          value=0;
+  51   2        }
+  52   1      }
+
+
+C51 COMPILER V9.60.0.0   IR                                                                10/01/2020 01:34:10 PAGE 2   
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     91    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     38    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
